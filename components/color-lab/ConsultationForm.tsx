@@ -1,4 +1,5 @@
 import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import type { Porosity } from "@/lib/color-engine/analyze";
 import type { HairLevel } from "@/lib/color-engine/levels";
 
@@ -149,23 +150,14 @@ export default function ConsultationForm({
           </div>
         </div>
 
-        <div>
-          <label
-            htmlFor="gray"
-            className="text-sm font-semibold text-white/75"
-          >
-            Gray percentage
-          </label>
-
-          <input
-            id="gray"
-            type="number"
-            min="0"
-            max="100"
-            defaultValue="30"
-            className="mt-3 w-full rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none transition focus:border-amber-300/50"
-          />
-        </div>
+        <Input
+          id="gray"
+          label="Gray percentage"
+          type="number"
+          min={0}
+          max={100}
+          defaultValue={30}
+        />
 
         <div>
           <label
