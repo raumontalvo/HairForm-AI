@@ -1,3 +1,15 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+import {
+  analyzeColorScenario,
+  type ColorAnalysis,
+  type Porosity,
+} from "@/lib/color-engine/analyze";
+import type { HairLevel } from "@/lib/color-engine/levels";
+
 const startingLevels = [
   "Level 1",
   "Level 2",
@@ -21,21 +33,50 @@ const targetTones = [
   "Violet",
 ];
 
+function parseHairLevel(value: string): HairLevel {
+  return Number(value.replace("Level ", "")) as HairLevel;
+}
+
 export default function ColorLabPage() {
+  const [currentLevel, setCurrentLevel] = useState<HairLevel>(5);
+  const [targetLevel, setTargetLevel] = useState<HairLevel>(8);
+  const [porosity, setPorosity] = useState<Porosity>("Medium");
+
+  const [analysis, setAnalysis] = useState<ColorAnalysis>(() =>
+    analyzeColorScenario({
+      currentLevel: 5,
+      targetLevel: 8,
+      porosity: "Medium",
+    }),
+  );
+
+  function handleAnalyze() {
+    const nextAnalysis = analyzeColorScenario({
+      currentLevel,
+      targetLevel,
+      porosity,
+    });
+
+    setAnalysis(nextAnalysis);
+  }
+
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white">
       <header className="border-b border-white/10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
-          <a href="/dashboard" className="text-xl font-semibold tracking-tight">
+          <Link
+            href="/dashboard"
+            className="text-xl font-semibold tracking-tight"
+          >
             HairForm <span className="text-amber-300">AI</span>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/dashboard"
             className="rounded-full border border-white/10 px-5 py-2.5 text-sm font-semibold text-white/70 transition hover:border-white/25 hover:text-white"
           >
             Back to Dashboard
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -60,6 +101,7 @@ export default function ColorLabPage() {
           <section className="rounded-3xl border border-white/10 bg-[#111111] p-6 sm:p-8">
             <div>
               <p className="text-sm text-white/40">Consultation input</p>
+
               <h2 className="mt-1 text-2xl font-semibold">
                 Describe the starting canvas
               </h2>
@@ -95,7 +137,10 @@ export default function ColorLabPage() {
 
                 <select
                   id="current-level"
-                  defaultValue="Level 5"
+                  value={`Level ${currentLevel}`}
+                  onChange={(event) =>
+                    setCurrentLevel(parseHairLevel(event.target.value))
+                  }
                   className="mt-3 w-full rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none transition focus:border-amber-300/50"
                 >
                   {startingLevels.map((level) => (
@@ -115,7 +160,10 @@ export default function ColorLabPage() {
 
                   <select
                     id="target-level"
-                    defaultValue="Level 8"
+                    value={`Level ${targetLevel}`}
+                    onChange={(event) =>
+                      setTargetLevel(parseHairLevel(event.target.value))
+                    }
                     className="mt-3 w-full rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none transition focus:border-amber-300/50"
                   >
                     {startingLevels.map((level) => (
@@ -172,7 +220,10 @@ export default function ColorLabPage() {
 
                 <select
                   id="porosity"
-                  defaultValue="Medium"
+                  value={porosity}
+                  onChange={(event) =>
+                    setPorosity(event.target.value as Porosity)
+                  }
                   className="mt-3 w-full rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none transition focus:border-amber-300/50"
                 >
                   <option>Low</option>
@@ -200,6 +251,7 @@ export default function ColorLabPage() {
 
               <button
                 type="button"
+                onClick={handleAnalyze}
                 className="w-full rounded-2xl bg-amber-300 px-5 py-3.5 font-semibold text-black transition hover:bg-amber-200"
               >
                 Analyze Consultation
@@ -216,7 +268,7 @@ export default function ColorLabPage() {
                   </p>
 
                   <h2 className="mt-3 text-3xl font-semibold">
-                    Level 5 warm brunette to Level 8 beige
+                    Level {currentLevel} to Level {targetLevel}
                   </h2>
                 </div>
 
@@ -226,10 +278,11 @@ export default function ColorLabPage() {
               </div>
 
               <p className="mt-6 leading-7 text-white/65">
-                This scenario requires approximately three levels of lift. At
-                the target level, yellow-orange underlying pigment may be
-                exposed. A beige result typically requires balanced warmth and
-                controlled neutralization rather than aggressive ash.
+                This scenario requires {analysis.liftDescription.toLowerCase()}.
+                The exposed underlying pigment is{" "}
+                {analysis.underlyingPigment.toLowerCase()}, with a suggested
+                neutralization focus of{" "}
+                {analysis.neutralizationTone.toLowerCase()}.
               </p>
             </div>
 
@@ -237,19 +290,19 @@ export default function ColorLabPage() {
               {[
                 {
                   label: "Required lift",
-                  value: "Approximately 3 levels",
+                  value: analysis.liftDescription,
                 },
                 {
                   label: "Underlying pigment",
-                  value: "Yellow-orange",
+                  value: analysis.underlyingPigment,
                 },
                 {
                   label: "Neutralization focus",
-                  value: "Blue-violet balance",
+                  value: analysis.neutralizationTone,
                 },
                 {
                   label: "Porosity risk",
-                  value: "Uneven tone deposit",
+                  value: analysis.porosityRisk,
                 },
               ].map((item) => (
                 <article
@@ -272,18 +325,23 @@ export default function ColorLabPage() {
 
               <div className="mt-5 space-y-4 text-sm leading-7 text-white/60">
                 <p>
-                  Lifting from Level 5 to Level 8 exposes warmth that must be
-                  considered before selecting the final tone.
+                  Changing from Level {currentLevel} to Level {targetLevel} can
+                  expose underlying warmth that must be considered before
+                  selecting the final tone.
                 </p>
 
                 <p>
-                  High or uneven porosity can cause cooler pigments to deposit
-                  too strongly, especially through previously lightened ends.
+                  The expected exposed pigment is{" "}
+                  {analysis.underlyingPigment.toLowerCase()}, which commonly
+                  points toward a{" "}
+                  {analysis.neutralizationTone.toLowerCase()} neutralization
+                  strategy.
                 </p>
 
                 <p>
-                  A strand test helps confirm lift, tone response, elasticity,
-                  and processing tolerance before full application.
+                  Porosity assessment: {analysis.porosityRisk}. A strand test
+                  helps confirm lift, tone response, elasticity, and processing
+                  tolerance before full application.
                 </p>
               </div>
             </article>
