@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 
+import AnalysisPanel from "@/components/color-lab/AnalysisPanel";
+import Button from "@/components/ui/Button";
 import {
   analyzeColorScenario,
   type ColorAnalysis,
@@ -51,13 +53,13 @@ export default function ColorLabPage() {
   );
 
   function handleAnalyze() {
-    const nextAnalysis = analyzeColorScenario({
-      currentLevel,
-      targetLevel,
-      porosity,
-    });
-
-    setAnalysis(nextAnalysis);
+    setAnalysis(
+      analyzeColorScenario({
+        currentLevel,
+        targetLevel,
+        porosity,
+      }),
+    );
   }
 
   return (
@@ -107,7 +109,13 @@ export default function ColorLabPage() {
               </h2>
             </div>
 
-            <form className="mt-8 space-y-6">
+            <form
+              className="mt-8 space-y-6"
+              onSubmit={(event) => {
+                event.preventDefault();
+                handleAnalyze();
+              }}
+            >
               <div>
                 <label
                   htmlFor="natural-level"
@@ -249,133 +257,17 @@ export default function ColorLabPage() {
                 />
               </div>
 
-              <button
-                type="button"
-                onClick={handleAnalyze}
-                className="w-full rounded-2xl bg-amber-300 px-5 py-3.5 font-semibold text-black transition hover:bg-amber-200"
-              >
+              <Button type="submit" fullWidth>
                 Analyze Consultation
-              </button>
+              </Button>
             </form>
           </section>
 
-          <section className="space-y-6">
-            <div className="rounded-3xl border border-amber-300/20 bg-amber-300/[0.07] p-6 sm:p-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
-                    Educational analysis
-                  </p>
-
-                  <h2 className="mt-3 text-3xl font-semibold">
-                    Level {currentLevel} to Level {targetLevel}
-                  </h2>
-                </div>
-
-                <span className="w-fit rounded-full bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-300">
-                  Learning mode
-                </span>
-              </div>
-
-              <p className="mt-6 leading-7 text-white/65">
-                This scenario requires {analysis.liftDescription.toLowerCase()}.
-                The exposed underlying pigment is{" "}
-                {analysis.underlyingPigment.toLowerCase()}, with a suggested
-                neutralization focus of{" "}
-                {analysis.neutralizationTone.toLowerCase()}.
-              </p>
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-2">
-              {[
-                {
-                  label: "Required lift",
-                  value: analysis.liftDescription,
-                },
-                {
-                  label: "Underlying pigment",
-                  value: analysis.underlyingPigment,
-                },
-                {
-                  label: "Neutralization focus",
-                  value: analysis.neutralizationTone,
-                },
-                {
-                  label: "Porosity risk",
-                  value: analysis.porosityRisk,
-                },
-              ].map((item) => (
-                <article
-                  key={item.label}
-                  className="rounded-3xl border border-white/10 bg-[#111111] p-6"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">
-                    {item.label}
-                  </p>
-
-                  <p className="mt-3 text-xl font-semibold">{item.value}</p>
-                </article>
-              ))}
-            </div>
-
-            <article className="rounded-3xl border border-white/10 bg-[#111111] p-6 sm:p-8">
-              <p className="text-sm font-semibold text-amber-300">
-                Why this matters
-              </p>
-
-              <div className="mt-5 space-y-4 text-sm leading-7 text-white/60">
-                <p>
-                  Changing from Level {currentLevel} to Level {targetLevel} can
-                  expose underlying warmth that must be considered before
-                  selecting the final tone.
-                </p>
-
-                <p>
-                  The expected exposed pigment is{" "}
-                  {analysis.underlyingPigment.toLowerCase()}, which commonly
-                  points toward a{" "}
-                  {analysis.neutralizationTone.toLowerCase()} neutralization
-                  strategy.
-                </p>
-
-                <p>
-                  Porosity assessment: {analysis.porosityRisk}. A strand test
-                  helps confirm lift, tone response, elasticity, and processing
-                  tolerance before full application.
-                </p>
-              </div>
-            </article>
-
-            <article className="rounded-3xl border border-white/10 bg-[#111111] p-6 sm:p-8">
-              <p className="text-sm font-semibold text-amber-300">
-                Professional safety checklist
-              </p>
-
-              <div className="mt-5 space-y-3">
-                {[
-                  "Confirm complete chemical history.",
-                  "Assess elasticity and porosity.",
-                  "Perform an allergy alert test when required.",
-                  "Complete a strand test before full application.",
-                  "Follow the selected manufacturer’s instructions.",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex gap-3 rounded-2xl border border-white/10 p-4"
-                  >
-                    <span className="text-amber-300">✓</span>
-                    <p className="text-sm text-white/65">{item}</p>
-                  </div>
-                ))}
-              </div>
-            </article>
-
-            <p className="text-xs leading-5 text-white/35">
-              HairForm AI provides educational decision support and does not
-              replace professional judgment, manufacturer instructions, strand
-              testing, allergy testing, or an in-person hair assessment.
-            </p>
-          </section>
+          <AnalysisPanel
+            currentLevel={currentLevel}
+            targetLevel={targetLevel}
+            analysis={analysis}
+          />
         </div>
       </div>
     </main>
