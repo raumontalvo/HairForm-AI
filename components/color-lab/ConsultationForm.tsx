@@ -3,6 +3,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import type { Porosity } from "@/lib/color-engine/analyze";
 import type { HairLevel } from "@/lib/color-engine/levels";
+import Textarea from "@/components/ui/Textarea";
 
 const startingLevels = [
   "Level 1",
@@ -138,21 +139,12 @@ export default function ConsultationForm({
           <option>Uneven</option>
         </Select>
 
-        <div>
-          <label
-            htmlFor="history"
-            className="text-sm font-semibold text-white/75"
-          >
-            Chemical history
-          </label>
-
-          <textarea
-            id="history"
-            rows={5}
-            placeholder="Example: Permanent color on roots, previous highlights through mids and ends..."
-            className="mt-3 w-full resize-none rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none placeholder:text-white/25 transition focus:border-amber-300/50"
-          />
-        </div>
+        <Textarea
+         id="history"
+         label="Chemical history"
+         rows={5}
+         placeholder="Example: Permanent color on roots, previous highlights through mids and ends..."
+        />
 
         <Button type="submit" fullWidth>
           Analyze Consultation
