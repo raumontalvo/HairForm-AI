@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import Card from "@/components/ui/Card";
 import type { ColorWheelEntry } from "@/lib/hair-science";
 
@@ -41,6 +43,13 @@ export default function ColorInfoPanel({
           </p>
         </div>
       </div>
+
+      <Link
+        href="/ai-mentor"
+        className="mt-6 inline-flex w-full items-center justify-center rounded-2xl bg-amber-300 px-5 py-3.5 font-semibold text-black transition hover:bg-amber-200"
+      >
+        Ask AI Mentor about {entry.color}
+      </Link>
     </Card>
   );
 }

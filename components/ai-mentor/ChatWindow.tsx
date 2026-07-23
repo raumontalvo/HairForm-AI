@@ -5,22 +5,31 @@ import { useState } from "react";
 import ChatInput from "@/components/ai-mentor/ChatInput";
 import ChatMessage from "@/components/ai-mentor/ChatMessage";
 import TypingIndicator from "@/components/ai-mentor/TypingIndicator";
+import { useHairSession } from "@/context/HairSessionContext";
 import { getSampleResponse } from "@/lib/ai/sampleResponses";
 import type { ChatMessage as ChatMessageType } from "@/lib/ai/types";
 
-const initialMessages: ChatMessageType[] = [
-  {
-    id: "welcome-message",
-    role: "assistant",
-    content:
-      "Welcome to HairForm AI Mentor. Ask me about color theory, corrective color, haircut geometry, consultations, or professional salon scenarios.",
-    createdAt: new Date().toISOString(),
-  },
-];
-
 export default function ChatWindow() {
-  const [messages, setMessages] =
-    useState<ChatMessageType[]>(initialMessages);
+  const {
+    currentLevel,
+    targetLevel,
+    porosity,
+    selectedPigment,
+  } = useHairSession();
+
+  const contextualWelcome = selectedPigment
+    ? `You are exploring ${selectedPigment.toLowerCase()} in the current Hair Session. Your levels are ${currentLevel} to ${targetLevel}, with ${porosity.toLowerCase()} porosity. Ask me why this color appears, how its complement works, or how it connects to neutralization.`
+    : "Welcome to HairForm AI Mentor. Ask me about color theory, corrective color, haircut geometry, consultations, or professional salon scenarios.";
+
+  const [messages, setMessages] = useState<ChatMessageType[]>([
+    {
+      id: "welcome-message",
+      role: "assistant",
+      content: contextualWelcome,
+      createdAt: new Date().toISOString(),
+    },
+  ]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(content: string) {
@@ -39,15 +48,28 @@ export default function ChatWindow() {
       ...currentMessages,
       userMessage,
     ]);
+
     setIsSubmitting(true);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 900));
 
+      const contextualQuestion = [
+        content,
+        selectedPigment
+          ? `Selected color context: ${selectedPigment}.`
+          : "",
+        `Current level: ${currentLevel}.`,
+        `Target level: ${targetLevel}.`,
+        `Porosity: ${porosity}.`,
+      ]
+        .filter(Boolean)
+        .join(" ");
+
       const assistantMessage: ChatMessageType = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: getSampleResponse(content),
+        content: getSampleResponse(contextualQuestion),
         createdAt: new Date().toISOString(),
       };
 
@@ -68,7 +90,9 @@ export default function ChatWindow() {
         </p>
 
         <p className="mt-1 text-xs text-white/40">
-          Offline educational prototype
+          {selectedPigment
+            ? `Context: ${selectedPigment} · Level ${currentLevel} to Level ${targetLevel}`
+            : "Offline educational prototype"}
         </p>
       </div>
 
