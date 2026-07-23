@@ -5,24 +5,29 @@ import Link from "next/link";
 
 import AnalysisPanel from "@/components/color-lab/AnalysisPanel";
 import ConsultationForm from "@/components/color-lab/ConsultationForm";
+import { useHairSession } from "@/context/HairSessionContext";
 import {
   analyzeColorScenario,
   type ColorAnalysis,
-  type Porosity,
-} from "@/lib/color-engine/analyze";
-import type { HairLevel } from "@/lib/color-engine/levels";
+} from "@/lib/hair-science";
 
 export default function ColorLabPage() {
-  const [currentLevel, setCurrentLevel] = useState<HairLevel>(5);
-  const [targetLevel, setTargetLevel] = useState<HairLevel>(8);
-  const [porosity, setPorosity] = useState<Porosity>("Medium");
+  const {
+    currentLevel,
+    targetLevel,
+    porosity,
+    setCurrentLevel,
+    setTargetLevel,
+    setPorosity,
+  } = useHairSession();
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const [analysis, setAnalysis] = useState<ColorAnalysis>(() =>
     analyzeColorScenario({
-      currentLevel: 5,
-      targetLevel: 8,
-      porosity: "Medium",
+      currentLevel,
+      targetLevel,
+      porosity,
     }),
   );
 

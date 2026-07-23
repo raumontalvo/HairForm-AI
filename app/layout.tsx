@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
+import { HairSessionProvider } from "@/context/HairSessionContext";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <HairSessionProvider>{children}</HairSessionProvider>
       </body>
     </html>
   );
