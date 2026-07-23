@@ -1,5 +1,6 @@
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
 import type { Porosity } from "@/lib/color-engine/analyze";
 import type { HairLevel } from "@/lib/color-engine/levels";
 
@@ -66,88 +67,52 @@ export default function ConsultationForm({
           onAnalyze();
         }}
       >
-        <div>
-          <label
-            htmlFor="natural-level"
-            className="text-sm font-semibold text-white/75"
-          >
-            Natural level
-          </label>
+        <Select
+          id="natural-level"
+          label="Natural level"
+          defaultValue="Level 5"
+        >
+          {startingLevels.map((level) => (
+            <option key={level}>{level}</option>
+          ))}
+        </Select>
 
-          <select
-            id="natural-level"
-            defaultValue="Level 5"
-            className="mt-3 w-full rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none transition focus:border-amber-300/50"
-          >
-            {startingLevels.map((level) => (
-              <option key={level}>{level}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label
-            htmlFor="current-level"
-            className="text-sm font-semibold text-white/75"
-          >
-            Current cosmetic level
-          </label>
-
-          <select
-            id="current-level"
-            value={`Level ${currentLevel}`}
-            onChange={(event) =>
-              onCurrentLevelChange(parseHairLevel(event.target.value))
-            }
-            className="mt-3 w-full rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none transition focus:border-amber-300/50"
-          >
-            {startingLevels.map((level) => (
-              <option key={level}>{level}</option>
-            ))}
-          </select>
-        </div>
+        <Select
+          id="current-level"
+          label="Current cosmetic level"
+          value={`Level ${currentLevel}`}
+          onChange={(event) =>
+            onCurrentLevelChange(parseHairLevel(event.target.value))
+          }
+        >
+          {startingLevels.map((level) => (
+            <option key={level}>{level}</option>
+          ))}
+        </Select>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label
-              htmlFor="target-level"
-              className="text-sm font-semibold text-white/75"
-            >
-              Target level
-            </label>
+          <Select
+            id="target-level"
+            label="Target level"
+            value={`Level ${targetLevel}`}
+            onChange={(event) =>
+              onTargetLevelChange(parseHairLevel(event.target.value))
+            }
+          >
+            {startingLevels.map((level) => (
+              <option key={level}>{level}</option>
+            ))}
+          </Select>
 
-            <select
-              id="target-level"
-              value={`Level ${targetLevel}`}
-              onChange={(event) =>
-                onTargetLevelChange(parseHairLevel(event.target.value))
-              }
-              className="mt-3 w-full rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none transition focus:border-amber-300/50"
-            >
-              {startingLevels.map((level) => (
-                <option key={level}>{level}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="target-tone"
-              className="text-sm font-semibold text-white/75"
-            >
-              Target tone
-            </label>
-
-            <select
-              id="target-tone"
-              defaultValue="Beige"
-              className="mt-3 w-full rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none transition focus:border-amber-300/50"
-            >
-              {targetTones.map((tone) => (
-                <option key={tone}>{tone}</option>
-              ))}
-            </select>
-          </div>
+          <Select
+            id="target-tone"
+            label="Target tone"
+            defaultValue="Beige"
+          >
+            {targetTones.map((tone) => (
+              <option key={tone}>{tone}</option>
+            ))}
+          </Select>
         </div>
 
         <Input
@@ -159,28 +124,19 @@ export default function ConsultationForm({
           defaultValue={30}
         />
 
-        <div>
-          <label
-            htmlFor="porosity"
-            className="text-sm font-semibold text-white/75"
-          >
-            Porosity
-          </label>
-
-          <select
-            id="porosity"
-            value={porosity}
-            onChange={(event) =>
-              onPorosityChange(event.target.value as Porosity)
-            }
-            className="mt-3 w-full rounded-2xl border border-white/10 bg-[#171717] px-4 py-3 text-white outline-none transition focus:border-amber-300/50"
-          >
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-            <option>Uneven</option>
-          </select>
-        </div>
+        <Select
+          id="porosity"
+          label="Porosity"
+          value={porosity}
+          onChange={(event) =>
+            onPorosityChange(event.target.value as Porosity)
+          }
+        >
+          <option>Low</option>
+          <option>Medium</option>
+          <option>High</option>
+          <option>Uneven</option>
+        </Select>
 
         <div>
           <label
