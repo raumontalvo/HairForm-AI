@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
-
+import { useMemo, useState } from "react";
 import ChatInput from "@/components/ai-mentor/ChatInput";
 import ChatMessage from "@/components/ai-mentor/ChatMessage";
+import HairSessionSummary from "@/components/ai-mentor/HairSessionSummary";
+import PromptSuggestions from "@/components/ai-mentor/PromptSuggestions";
 import TypingIndicator from "@/components/ai-mentor/TypingIndicator";
 import { useHairSession } from "@/context/HairSessionContext";
 import { getSampleResponse } from "@/lib/ai/sampleResponses";
@@ -18,7 +19,7 @@ export default function ChatWindow() {
   } = useHairSession();
 
   const contextualWelcome = selectedPigment
-    ? `You are exploring ${selectedPigment.toLowerCase()} in the current Hair Session. Your levels are ${currentLevel} to ${targetLevel}, with ${porosity.toLowerCase()} porosity. Ask me why this color appears, how its complement works, or how it connects to neutralization.`
+    ? `You are exploring ${selectedPigment.toLowerCase()} in the current Hair Session. Ask me why this pigment appears, how its complement works, or how it connects to neutralization.`
     : "Welcome to HairForm AI Mentor. Ask me about color theory, corrective color, haircut geometry, consultations, or professional salon scenarios.";
 
   const [messages, setMessages] = useState<ChatMessageType[]>([
@@ -32,15 +33,28 @@ export default function ChatWindow() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const suggestions = useMemo(
+    () => [
+      `What should I expect when lifting from level ${currentLevel} to level ${targetLevel}?`,
+      `How should ${porosity.toLowerCase()} porosity affect my formulation?`,
+      selectedPigment
+        ? `How do I neutralize ${selectedPigment.toLowerCase()} pigment?`
+        : "How do I identify the underlying pigment during lifting?",
+    ],
+    [currentLevel, targetLevel, porosity, selectedPigment],
+  );
+
   async function handleSubmit(content: string) {
-    if (isSubmitting) {
+    const trimmedContent = content.trim();
+
+    if (!trimmedContent || isSubmitting) {
       return;
     }
 
     const userMessage: ChatMessageType = {
       id: crypto.randomUUID(),
       role: "user",
-      content,
+      content: trimmedContent,
       createdAt: new Date().toISOString(),
     };
 
@@ -55,16 +69,14 @@ export default function ChatWindow() {
       await new Promise((resolve) => setTimeout(resolve, 900));
 
       const contextualQuestion = [
-        content,
+        trimmedContent,
         selectedPigment
-          ? `Selected color context: ${selectedPigment}.`
-          : "",
+          ? `Selected pigment: ${selectedPigment}.`
+          : "No pigment is currently selected.",
         `Current level: ${currentLevel}.`,
         `Target level: ${targetLevel}.`,
         `Porosity: ${porosity}.`,
-      ]
-        .filter(Boolean)
-        .join(" ");
+      ].join(" ");
 
       const assistantMessage: ChatMessageType = {
         id: crypto.randomUUID(),
@@ -92,16 +104,31 @@ export default function ChatWindow() {
         <p className="mt-1 text-xs text-white/40">
           {selectedPigment
             ? `Context: ${selectedPigment} · Level ${currentLevel} to Level ${targetLevel}`
-            : "Offline educational prototype"}
+            : `Level ${currentLevel} to Level ${targetLevel} · ${porosity} porosity`}
         </p>
       </div>
 
-      <div className="min-h-[520px] space-y-5 p-5 sm:p-6">
-        {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
-        ))}
+      <div className="space-y-5 p-5 sm:p-6">
+        <HairSessionSummary
+          currentLevel={currentLevel}
+          targetLevel={targetLevel}
+          porosity={porosity}
+          selectedPigment={selectedPigment}
+        />
 
-        {isSubmitting ? <TypingIndicator /> : null}
+        <div className="space-y-5">
+          {messages.map((message) => (
+            <ChatMessage key={message.id} message={message} />
+          ))}
+
+          {isSubmitting ? <TypingIndicator /> : null}
+        </div>
+
+        <PromptSuggestions
+          suggestions={suggestions}
+          disabled={isSubmitting}
+          onSelect={handleSubmit}
+        />
       </div>
 
       <ChatInput
