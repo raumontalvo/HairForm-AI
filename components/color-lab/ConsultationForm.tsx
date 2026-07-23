@@ -1,9 +1,10 @@
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import Spinner from "@/components/ui/Spinner";
+import Textarea from "@/components/ui/Textarea";
 import type { Porosity } from "@/lib/color-engine/analyze";
 import type { HairLevel } from "@/lib/color-engine/levels";
-import Textarea from "@/components/ui/Textarea";
 
 const startingLevels = [
   "Level 1",
@@ -32,10 +33,11 @@ type ConsultationFormProps = {
   currentLevel: HairLevel;
   targetLevel: HairLevel;
   porosity: Porosity;
+  isAnalyzing: boolean;
   onCurrentLevelChange: (level: HairLevel) => void;
   onTargetLevelChange: (level: HairLevel) => void;
   onPorosityChange: (porosity: Porosity) => void;
-  onAnalyze: () => void;
+  onAnalyze: () => void | Promise<void>;
 };
 
 function parseHairLevel(value: string): HairLevel {
@@ -46,6 +48,7 @@ export default function ConsultationForm({
   currentLevel,
   targetLevel,
   porosity,
+  isAnalyzing,
   onCurrentLevelChange,
   onTargetLevelChange,
   onPorosityChange,
@@ -63,15 +66,16 @@ export default function ConsultationForm({
 
       <form
         className="mt-8 space-y-6"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
-          onAnalyze();
+          await onAnalyze();
         }}
       >
         <Select
           id="natural-level"
           label="Natural level"
           defaultValue="Level 5"
+          disabled={isAnalyzing}
         >
           {startingLevels.map((level) => (
             <option key={level}>{level}</option>
@@ -82,6 +86,7 @@ export default function ConsultationForm({
           id="current-level"
           label="Current cosmetic level"
           value={`Level ${currentLevel}`}
+          disabled={isAnalyzing}
           onChange={(event) =>
             onCurrentLevelChange(parseHairLevel(event.target.value))
           }
@@ -96,6 +101,7 @@ export default function ConsultationForm({
             id="target-level"
             label="Target level"
             value={`Level ${targetLevel}`}
+            disabled={isAnalyzing}
             onChange={(event) =>
               onTargetLevelChange(parseHairLevel(event.target.value))
             }
@@ -109,6 +115,7 @@ export default function ConsultationForm({
             id="target-tone"
             label="Target tone"
             defaultValue="Beige"
+            disabled={isAnalyzing}
           >
             {targetTones.map((tone) => (
               <option key={tone}>{tone}</option>
@@ -123,12 +130,14 @@ export default function ConsultationForm({
           min={0}
           max={100}
           defaultValue={30}
+          disabled={isAnalyzing}
         />
 
         <Select
           id="porosity"
           label="Porosity"
           value={porosity}
+          disabled={isAnalyzing}
           onChange={(event) =>
             onPorosityChange(event.target.value as Porosity)
           }
@@ -140,14 +149,22 @@ export default function ConsultationForm({
         </Select>
 
         <Textarea
-         id="history"
-         label="Chemical history"
-         rows={5}
-         placeholder="Example: Permanent color on roots, previous highlights through mids and ends..."
+          id="history"
+          label="Chemical history"
+          rows={5}
+          disabled={isAnalyzing}
+          placeholder="Example: Permanent color on roots, previous highlights through mids and ends..."
         />
 
-        <Button type="submit" fullWidth>
-          Analyze Consultation
+        <Button type="submit" fullWidth disabled={isAnalyzing}>
+          {isAnalyzing ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Spinner size="small" label="Analyzing consultation" />
+              Analyzing...
+            </span>
+          ) : (
+            "Analyze Consultation"
+          )}
         </Button>
       </form>
     </section>

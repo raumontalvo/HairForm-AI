@@ -16,6 +16,7 @@ export default function ColorLabPage() {
   const [currentLevel, setCurrentLevel] = useState<HairLevel>(5);
   const [targetLevel, setTargetLevel] = useState<HairLevel>(8);
   const [porosity, setPorosity] = useState<Porosity>("Medium");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const [analysis, setAnalysis] = useState<ColorAnalysis>(() =>
     analyzeColorScenario({
@@ -25,14 +26,26 @@ export default function ColorLabPage() {
     }),
   );
 
-  function handleAnalyze() {
-    setAnalysis(
-      analyzeColorScenario({
-        currentLevel,
-        targetLevel,
-        porosity,
-      }),
-    );
+  async function handleAnalyze() {
+    if (isAnalyzing) {
+      return;
+    }
+
+    setIsAnalyzing(true);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 900));
+
+      setAnalysis(
+        analyzeColorScenario({
+          currentLevel,
+          targetLevel,
+          porosity,
+        }),
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
   }
 
   return (
@@ -77,6 +90,7 @@ export default function ColorLabPage() {
             currentLevel={currentLevel}
             targetLevel={targetLevel}
             porosity={porosity}
+            isAnalyzing={isAnalyzing}
             onCurrentLevelChange={setCurrentLevel}
             onTargetLevelChange={setTargetLevel}
             onPorosityChange={setPorosity}
