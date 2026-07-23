@@ -34,3 +34,15 @@ export {
   type ColorFamily,
   type ColorWheelEntry,
 } from "./color-wheel";
+
+export {
+  createLiftJourney,
+  type LiftJourney,
+  type LiftJourneyStep,
+} from "./lift-journey";
+
+export {
+  getColorFamilyForPigment,
+  getPigmentMapping,
+  type PigmentMapping,
+} from "./pigment-mapper";

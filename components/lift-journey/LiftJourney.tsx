@@ -8,6 +8,7 @@ import Select from "@/components/ui/Select";
 import { useHairSession } from "@/context/HairSessionContext";
 import {
   createLiftJourney,
+  getColorFamilyForPigment,
   type HairLevel,
   type LiftJourneyStep,
 } from "@/lib/hair-science";
@@ -20,6 +21,7 @@ export default function LiftJourney() {
     targetLevel,
     setCurrentLevel,
     setTargetLevel,
+    setSelectedPigment,
   } = useHairSession();
 
   const journey = useMemo(
@@ -37,6 +39,15 @@ export default function LiftJourney() {
   function handleCurrentLevelChange(level: HairLevel) {
     setCurrentLevel(level);
     setSelectedLevel(level);
+
+    const nextJourney = createLiftJourney(level, targetLevel);
+    const firstStep = nextJourney.steps[0];
+
+    if (firstStep) {
+      setSelectedPigment(
+        getColorFamilyForPigment(firstStep.pigment),
+      );
+    }
   }
 
   function handleTargetLevelChange(level: HairLevel) {
@@ -47,12 +58,23 @@ export default function LiftJourney() {
     if (
       !nextJourney.steps.some((step) => step.level === selectedLevel)
     ) {
+      const firstStep = nextJourney.steps[0];
+
       setSelectedLevel(currentLevel);
+
+      if (firstStep) {
+        setSelectedPigment(
+          getColorFamilyForPigment(firstStep.pigment),
+        );
+      }
     }
   }
 
   function handleStepSelect(step: LiftJourneyStep) {
     setSelectedLevel(step.level);
+    setSelectedPigment(
+      getColorFamilyForPigment(step.pigment),
+    );
   }
 
   return (
