@@ -6,6 +6,7 @@ import AppShell from "@/components/layout/AppShell";
 import EmptyState from "@/components/sessions/EmptyState";
 import SessionList from "@/components/sessions/SessionList";
 import SessionToolbar from "@/components/sessions/SessionToolbar";
+import { useHairSession } from "@/context/HairSessionContext";
 import {
   deleteHairSession,
   listHairSessions,
@@ -67,6 +68,7 @@ function matchesSearch(
 
 export default function SavedSessionsPage() {
   const router = useRouter();
+  const { loadSession } = useHairSession();
 
   const [sessions, setSessions] = useState<HairSession[]>(
     () => listHairSessions(),
@@ -96,10 +98,11 @@ export default function SavedSessionsPage() {
   }
 
   function handleOpen(session: HairSession) {
-    window.localStorage.setItem(
-      "hairform-ai:active-session-id",
-      session.id,
-    );
+    const didLoad = loadSession(session.id);
+
+    if (!didLoad) {
+      return;
+    }
 
     router.push("/color-lab");
   }
