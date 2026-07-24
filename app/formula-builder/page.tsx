@@ -1,5 +1,6 @@
 "use client";
 
+import FormulaPlanningForm from "@/components/formula-builder/FormulaPlanningForm";
 import FormulaSessionSummary from "@/components/formula-builder/FormulaSessionSummary";
 import AppShell from "@/components/layout/AppShell";
 import { useHairSession } from "@/context/HairSessionContext";
@@ -39,20 +40,7 @@ export default function FormulaBuilderPage() {
           </div>
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-            <section className="rounded-2xl border border-white/10 bg-black/20 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">
-                Planning
-              </p>
-
-              <h2 className="mt-2 text-lg font-semibold text-white">
-                Build the service plan
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-white/50">
-                Tonal direction, developer choice, application strategy,
-                processing notes, and professional observations will live here.
-              </p>
-            </section>
+            <FormulaPlanningForm />
 
             <section className="rounded-2xl border border-amber-300/15 bg-amber-300/[0.04] p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300">
