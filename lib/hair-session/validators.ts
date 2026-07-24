@@ -4,7 +4,9 @@ import type {
   PorosityLevel,
 } from "./types";
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(
+  value: unknown,
+): value is Record<string, unknown> {
   return (
     typeof value === "object" &&
     value !== null &&
@@ -12,7 +14,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   );
 }
 
-export function isValidLevel(value: unknown): value is number {
+export function isValidLevel(
+  value: unknown,
+): value is number {
   return (
     typeof value === "number" &&
     Number.isInteger(value) &&
@@ -38,7 +42,8 @@ export function isPorosityLevel(
   return (
     value === "Low" ||
     value === "Medium" ||
-    value === "High"
+    value === "High" ||
+    value === "Uneven"
   );
 }
 
@@ -58,7 +63,9 @@ export function isFormulaPlan(
   );
 }
 
-function isValidTimestamp(value: unknown): value is string {
+function isValidTimestamp(
+  value: unknown,
+): value is string {
   return (
     typeof value === "string" &&
     value.trim().length > 0 &&

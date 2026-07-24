@@ -1,4 +1,8 @@
-export type PorosityLevel = "Low" | "Medium" | "High";
+export type PorosityLevel =
+  | "Low"
+  | "Medium"
+  | "High"
+  | "Uneven";
 
 export type FormulaPlan = {
   tonalFamily: string;
