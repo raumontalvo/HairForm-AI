@@ -1,7 +1,7 @@
 import {
   detectTopic,
   type MentorTopic,
-} from "@/lib/hair-science/mentor/detectTopic";
+} from "./detectTopic";
 
 export type MentorContext = {
   currentLevel: number;
@@ -15,7 +15,9 @@ type ResponseBuilderInput = {
   context: MentorContext;
 };
 
-function getNeutralizingTone(pigment: string | null): string | null {
+function getNeutralizingTone(
+  pigment: string | null,
+): string | null {
   if (!pigment) {
     return null;
   }
@@ -49,7 +51,9 @@ function getNeutralizingTone(pigment: string | null): string | null {
   return null;
 }
 
-function buildSessionIntroduction(context: MentorContext): string {
+function buildSessionIntroduction(
+  context: MentorContext,
+): string {
   const pigmentText = context.selectedPigment
     ? ` The selected pigment is ${context.selectedPigment.toLowerCase()}.`
     : "";
@@ -57,7 +61,9 @@ function buildSessionIntroduction(context: MentorContext): string {
   return `In your current Hair Session, the plan moves from level ${context.currentLevel} to level ${context.targetLevel} with ${context.porosity.toLowerCase()} porosity.${pigmentText}`;
 }
 
-function buildNeutralizationResponse(context: MentorContext): string {
+function buildNeutralizationResponse(
+  context: MentorContext,
+): string {
   const neutralizingTone = getNeutralizingTone(
     context.selectedPigment,
   );
@@ -69,7 +75,9 @@ function buildNeutralizationResponse(context: MentorContext): string {
   return `${buildSessionIntroduction(context)} Neutralization begins by identifying the pigment that is actually visible. Blue helps balance orange, violet helps balance yellow, and green helps balance red. Match the correcting family to the observed pigment and its intensity, then account for porosity before choosing the final tonal balance.`;
 }
 
-function buildPorosityResponse(context: MentorContext): string {
+function buildPorosityResponse(
+  context: MentorContext,
+): string {
   const normalizedPorosity = context.porosity.toLowerCase();
 
   if (normalizedPorosity.includes("high")) {
@@ -83,8 +91,11 @@ function buildPorosityResponse(context: MentorContext): string {
   return `${buildSessionIntroduction(context)} Medium porosity generally offers more predictable absorption, but previously colored or lightened zones can still behave differently. Evaluate the roots, mids, and ends separately, maintain even saturation, and monitor the most compromised areas so they do not over-deposit.`;
 }
 
-function buildLiftResponse(context: MentorContext): string {
-  const liftDistance = context.targetLevel - context.currentLevel;
+function buildLiftResponse(
+  context: MentorContext,
+): string {
+  const liftDistance =
+    context.targetLevel - context.currentLevel;
 
   if (liftDistance <= 0) {
     return `${buildSessionIntroduction(context)} This session does not currently describe an upward lift journey. Recheck whether the goal is deposit, tonal refinement, darkening, or corrective work. The educational plan should match the actual direction of the service.`;
@@ -100,23 +111,33 @@ function buildLiftResponse(context: MentorContext): string {
   return `${buildSessionIntroduction(context)} Moving ${liftDistance} level${liftDistance === 1 ? "" : "s"} represents ${distanceDescription}. Expect warmer underlying pigments to appear as natural pigment is removed. Evaluate each stage visually instead of choosing toner only from the target level. Hair condition, previous artificial color, and elasticity determine whether the target can be reached safely in one session.`;
 }
 
-function buildDeveloperResponse(context: MentorContext): string {
+function buildDeveloperResponse(
+  context: MentorContext,
+): string {
   return `${buildSessionIntroduction(context)} Developer selection should follow the specific color or lightener system, the desired amount of lift or deposit, scalp considerations, and the condition of the hair. A higher volume is not automatically more effective or more appropriate. Previously lightened or porous areas may require a different strategy from healthy virgin regrowth. Always follow manufacturer directions and confirm the plan with testing.`;
 }
 
-function buildGrayCoverageResponse(context: MentorContext): string {
+function buildGrayCoverageResponse(
+  context: MentorContext,
+): string {
   return `${buildSessionIntroduction(context)} Effective gray coverage depends on the gray percentage, resistance, texture, distribution, target depth, and the requirements of the color line. Natural-base support, mixing ratio, developer, and full processing time may all matter. Assess resistant zones separately instead of assuming the same formula will cover every area equally.`;
 }
 
-function buildCorrectionResponse(context: MentorContext): string {
+function buildCorrectionResponse(
+  context: MentorContext,
+): string {
   return `${buildSessionIntroduction(context)} Corrective work should begin by dividing the hair into zones and documenting the level, visible pigment, porosity, elasticity, and chemical history of each zone. Decide which areas need lift, deposit, filling, neutralization, or no additional processing. The safest correction is often a staged plan rather than one aggressive formula across the entire head.`;
 }
 
-function buildStrandTestResponse(context: MentorContext): string {
+function buildStrandTestResponse(
+  context: MentorContext,
+): string {
   return `${buildSessionIntroduction(context)} A strand test can verify lift, tonal direction, timing, condition, and compatibility before a complete service. Select a section that represents the most challenging area, record the exact formula and processing time, and evaluate both the color result and the integrity of the hair before proceeding.`;
 }
 
-function buildColorTheoryResponse(context: MentorContext): string {
+function buildColorTheoryResponse(
+  context: MentorContext,
+): string {
   const neutralizingTone = getNeutralizingTone(
     context.selectedPigment,
   );
@@ -129,7 +150,9 @@ function buildColorTheoryResponse(context: MentorContext): string {
   return `${buildSessionIntroduction(context)} Color theory helps explain both visible warmth and tonal correction. Complementary colors sit opposite one another: blue and orange, violet and yellow, and green and red.${complementText} The practical goal is controlled balance based on the hair’s actual level, pigment intensity, and porosity.`;
 }
 
-function buildGeneralResponse(context: MentorContext): string {
+function buildGeneralResponse(
+  context: MentorContext,
+): string {
   return `${buildSessionIntroduction(context)} Begin with diagnosis: confirm the starting level, visible pigment, porosity, elasticity, chemical history, and desired result. Separate the hair into zones when the condition or starting point varies. Use the color wheel and lift journey as educational guides, follow the product manufacturer’s instructions, and verify the plan with a strand test.`;
 }
 

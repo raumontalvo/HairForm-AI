@@ -1,4 +1,4 @@
-import type { MentorContext } from "@/lib/hair-science/mentor/buildResponse";
+import type { MentorContext } from "./buildResponse";
 
 export function buildMentorPrompts(
   context: MentorContext,
