@@ -1,3 +1,7 @@
+import {
+  getNeutralizingFamily,
+} from "./knowledge/neutralization";
+
 export type FormulaGuidanceInput = {
   currentLevel: number;
   targetLevel: number;
@@ -16,42 +20,6 @@ export type FormulaGuidance = {
   applicationConsideration: string;
   safetyReminder: string;
 };
-
-function getNeutralizingFamily(
-  pigment: string | null,
-): string | null {
-  if (!pigment) {
-    return null;
-  }
-
-  const normalizedPigment = pigment.toLowerCase();
-
-  if (normalizedPigment.includes("red")) {
-    return "green";
-  }
-
-  if (normalizedPigment.includes("orange")) {
-    return "blue";
-  }
-
-  if (normalizedPigment.includes("yellow")) {
-    return "violet";
-  }
-
-  if (normalizedPigment.includes("green")) {
-    return "red";
-  }
-
-  if (normalizedPigment.includes("blue")) {
-    return "orange";
-  }
-
-  if (normalizedPigment.includes("violet")) {
-    return "yellow";
-  }
-
-  return null;
-}
 
 function buildExpectedPigment(
   currentLevel: number,
@@ -75,8 +43,9 @@ function buildNeutralization(
   selectedPigment: string | null,
   tonalFamily: string,
 ): string {
-  const neutralizingFamily =
-    getNeutralizingFamily(selectedPigment);
+  const neutralizingFamily = getNeutralizingFamily(
+    selectedPigment,
+  );
 
   if (!selectedPigment || !neutralizingFamily) {
     return "Select or identify the visible pigment before choosing a neutralizing family. Blue balances orange, violet balances yellow, and green balances red.";

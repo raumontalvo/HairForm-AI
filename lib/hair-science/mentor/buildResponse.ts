@@ -1,4 +1,7 @@
 import {
+  getNeutralizingFamily,
+} from "../knowledge/neutralization";
+import {
   detectTopic,
   type MentorTopic,
 } from "./detectTopic";
@@ -15,42 +18,6 @@ type ResponseBuilderInput = {
   context: MentorContext;
 };
 
-function getNeutralizingTone(
-  pigment: string | null,
-): string | null {
-  if (!pigment) {
-    return null;
-  }
-
-  const normalizedPigment = pigment.toLowerCase();
-
-  if (normalizedPigment.includes("red")) {
-    return "green";
-  }
-
-  if (normalizedPigment.includes("orange")) {
-    return "blue";
-  }
-
-  if (normalizedPigment.includes("yellow")) {
-    return "violet";
-  }
-
-  if (normalizedPigment.includes("green")) {
-    return "red";
-  }
-
-  if (normalizedPigment.includes("blue")) {
-    return "orange";
-  }
-
-  if (normalizedPigment.includes("violet")) {
-    return "yellow";
-  }
-
-  return null;
-}
-
 function buildSessionIntroduction(
   context: MentorContext,
 ): string {
@@ -64,7 +31,7 @@ function buildSessionIntroduction(
 function buildNeutralizationResponse(
   context: MentorContext,
 ): string {
-  const neutralizingTone = getNeutralizingTone(
+  const neutralizingTone = getNeutralizingFamily(
     context.selectedPigment,
   );
 
@@ -138,7 +105,7 @@ function buildStrandTestResponse(
 function buildColorTheoryResponse(
   context: MentorContext,
 ): string {
-  const neutralizingTone = getNeutralizingTone(
+  const neutralizingTone = getNeutralizingFamily(
     context.selectedPigment,
   );
 
