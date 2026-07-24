@@ -1,9 +1,22 @@
 "use client";
 
-import FormulaPlanningForm from "@/components/formula-builder/FormulaPlanningForm";
+import { useState } from "react";
+import FormulaGuidance from "@/components/formula-builder/FormulaGuidance";
+import FormulaPlanningForm, {
+  type FormulaPlan,
+} from "@/components/formula-builder/FormulaPlanningForm";
 import FormulaSessionSummary from "@/components/formula-builder/FormulaSessionSummary";
 import AppShell from "@/components/layout/AppShell";
 import { useHairSession } from "@/context/HairSessionContext";
+import { buildFormulaGuidance } from "@/lib/hair-science/formula-guidance";
+
+const initialPlan: FormulaPlan = {
+  tonalFamily: "",
+  developerChoice: "",
+  applicationStrategy: "",
+  processingNotes: "",
+  professionalNotes: "",
+};
 
 export default function FormulaBuilderPage() {
   const {
@@ -12,6 +25,18 @@ export default function FormulaBuilderPage() {
     porosity,
     selectedPigment,
   } = useHairSession();
+
+  const [plan, setPlan] = useState<FormulaPlan>(initialPlan);
+
+  const guidance = buildFormulaGuidance({
+    currentLevel,
+    targetLevel,
+    porosity,
+    selectedPigment,
+    tonalFamily: plan.tonalFamily,
+    developerChoice: plan.developerChoice,
+    applicationStrategy: plan.applicationStrategy,
+  });
 
   return (
     <AppShell>
@@ -39,23 +64,10 @@ export default function FormulaBuilderPage() {
             />
           </div>
 
-          <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-            <FormulaPlanningForm />
+          <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+            <FormulaPlanningForm onPlanChange={setPlan} />
 
-            <section className="rounded-2xl border border-amber-300/15 bg-amber-300/[0.04] p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300">
-                Hair science guidance
-              </p>
-
-              <h2 className="mt-2 text-lg font-semibold text-white">
-                Reasoning before formulation
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-white/50">
-                This area will explain expected pigment, neutralization,
-                porosity considerations, lift risk, and strand-test guidance.
-              </p>
-            </section>
+            <FormulaGuidance guidance={guidance} />
           </div>
         </section>
       </main>
