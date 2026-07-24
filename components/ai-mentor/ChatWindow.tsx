@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import ChatInput from "@/components/ai-mentor/ChatInput";
 import ChatMessage from "@/components/ai-mentor/ChatMessage";
 import HairSessionSummary from "@/components/ai-mentor/HairSessionSummary";
 import PromptSuggestions from "@/components/ai-mentor/PromptSuggestions";
 import TypingIndicator from "@/components/ai-mentor/TypingIndicator";
 import { useHairSession } from "@/context/HairSessionContext";
-import { buildMentorResponse } from "@/lib/hair-science/mentor/buildResponse";
 import type { ChatMessage as ChatMessageType } from "@/lib/ai/types";
+import { buildMentorResponse } from "@/lib/hair-science/mentor/buildResponse";
+import { buildMentorPrompts } from "@/lib/hair-science/mentor/prompts";
 
 export default function ChatWindow() {
   const {
@@ -17,6 +18,13 @@ export default function ChatWindow() {
     porosity,
     selectedPigment,
   } = useHairSession();
+
+  const mentorContext = {
+    currentLevel,
+    targetLevel,
+    porosity,
+    selectedPigment,
+  };
 
   const contextualWelcome = selectedPigment
     ? `You are exploring ${selectedPigment.toLowerCase()} in the current Hair Session. Ask me why this pigment appears, how its complement works, or how it connects to neutralization.`
@@ -33,16 +41,7 @@ export default function ChatWindow() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const suggestions = useMemo(
-    () => [
-      `What should I expect when lifting from level ${currentLevel} to level ${targetLevel}?`,
-      `How should ${porosity.toLowerCase()} porosity affect my formulation?`,
-      selectedPigment
-        ? `How do I neutralize ${selectedPigment.toLowerCase()} pigment?`
-        : "How do I identify the underlying pigment during lifting?",
-    ],
-    [currentLevel, targetLevel, porosity, selectedPigment],
-  );
+  const suggestions = buildMentorPrompts(mentorContext);
 
   async function handleSubmit(content: string) {
     const trimmedContent = content.trim();
@@ -73,12 +72,7 @@ export default function ChatWindow() {
         role: "assistant",
         content: buildMentorResponse({
           question: trimmedContent,
-          context: {
-            currentLevel,
-            targetLevel,
-            porosity,
-            selectedPigment,
-          },
+          context: mentorContext,
         }),
         createdAt: new Date().toISOString(),
       };
