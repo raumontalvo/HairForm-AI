@@ -7,7 +7,7 @@ import HairSessionSummary from "@/components/ai-mentor/HairSessionSummary";
 import PromptSuggestions from "@/components/ai-mentor/PromptSuggestions";
 import TypingIndicator from "@/components/ai-mentor/TypingIndicator";
 import { useHairSession } from "@/context/HairSessionContext";
-import { getSampleResponse } from "@/lib/ai/sampleResponses";
+import { buildMentorResponse } from "@/lib/hair-science/mentor/buildResponse";
 import type { ChatMessage as ChatMessageType } from "@/lib/ai/types";
 
 export default function ChatWindow() {
@@ -68,20 +68,18 @@ export default function ChatWindow() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 900));
 
-      const contextualQuestion = [
-        trimmedContent,
-        selectedPigment
-          ? `Selected pigment: ${selectedPigment}.`
-          : "No pigment is currently selected.",
-        `Current level: ${currentLevel}.`,
-        `Target level: ${targetLevel}.`,
-        `Porosity: ${porosity}.`,
-      ].join(" ");
-
       const assistantMessage: ChatMessageType = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: getSampleResponse(contextualQuestion),
+        content: buildMentorResponse({
+          question: trimmedContent,
+          context: {
+            currentLevel,
+            targetLevel,
+            porosity,
+            selectedPigment,
+          },
+        }),
         createdAt: new Date().toISOString(),
       };
 
