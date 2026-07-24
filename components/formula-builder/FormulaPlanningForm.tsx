@@ -4,6 +4,11 @@ import { useState } from "react";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
+import {
+  clearFormulaPlan,
+  loadFormulaPlan,
+  saveFormulaPlan,
+} from "@/lib/formula-storage";
 
 export type FormulaPlan = {
   tonalFamily: string;
@@ -25,11 +30,19 @@ const initialPlan: FormulaPlan = {
   professionalNotes: "",
 };
 
+function getInitialPlan(): FormulaPlan {
+  return loadFormulaPlan() ?? initialPlan;
+}
+
 export default function FormulaPlanningForm({
   onPlanChange,
 }: FormulaPlanningFormProps) {
-  const [plan, setPlan] = useState<FormulaPlan>(initialPlan);
-  const [isSaved, setIsSaved] = useState(false);
+  const [plan, setPlan] = useState<FormulaPlan>(getInitialPlan);
+  const [statusMessage, setStatusMessage] = useState(() =>
+    loadFormulaPlan()
+      ? "Saved formula plan restored from this device."
+      : "The plan currently remains in local page state.",
+  );
 
   function updatePlan<Key extends keyof FormulaPlan>(
     key: Key,
@@ -41,13 +54,37 @@ export default function FormulaPlanningForm({
     };
 
     setPlan(nextPlan);
-    setIsSaved(false);
+    setStatusMessage("You have unsaved changes.");
     onPlanChange?.(nextPlan);
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
-    setIsSaved(true);
+
+    const didSave = saveFormulaPlan(plan);
+
+    setStatusMessage(
+      didSave
+        ? "Formula plan saved on this device."
+        : "The formula plan could not be saved.",
+    );
+  }
+
+  function handleClear() {
+    const didClear = clearFormulaPlan();
+
+    if (!didClear) {
+      setStatusMessage(
+        "The saved formula plan could not be cleared.",
+      );
+      return;
+    }
+
+    setPlan(initialPlan);
+    onPlanChange?.(initialPlan);
+    setStatusMessage("Saved formula plan cleared.");
   }
 
   return (
@@ -96,11 +133,18 @@ export default function FormulaPlanningForm({
           label="Developer choice"
           value={plan.developerChoice}
           onChange={(event) =>
-            updatePlan("developerChoice", event.target.value)
+            updatePlan(
+              "developerChoice",
+              event.target.value,
+            )
           }
         >
-          <option value="">Select your planned developer</option>
-          <option value="deposit-only">Deposit-only system</option>
+          <option value="">
+            Select your planned developer
+          </option>
+          <option value="deposit-only">
+            Deposit-only system
+          </option>
           <option value="10-volume">10 volume</option>
           <option value="20-volume">20 volume</option>
           <option value="30-volume">30 volume</option>
@@ -108,7 +152,9 @@ export default function FormulaPlanningForm({
           <option value="manufacturer-specific">
             Manufacturer-specific option
           </option>
-          <option value="not-decided">Not decided yet</option>
+          <option value="not-decided">
+            Not decided yet
+          </option>
         </Select>
       </div>
 
@@ -117,17 +163,34 @@ export default function FormulaPlanningForm({
           label="Application strategy"
           value={plan.applicationStrategy}
           onChange={(event) =>
-            updatePlan("applicationStrategy", event.target.value)
+            updatePlan(
+              "applicationStrategy",
+              event.target.value,
+            )
           }
         >
-          <option value="">Select an application strategy</option>
+          <option value="">
+            Select an application strategy
+          </option>
           <option value="roots-first">Roots first</option>
-          <option value="mids-ends-first">Mids and ends first</option>
-          <option value="zone-application">Zone-by-zone application</option>
-          <option value="virgin-application">Virgin application</option>
-          <option value="retouch">Retouch application</option>
-          <option value="corrective">Corrective application</option>
-          <option value="strand-test-first">Strand test first</option>
+          <option value="mids-ends-first">
+            Mids and ends first
+          </option>
+          <option value="zone-application">
+            Zone-by-zone application
+          </option>
+          <option value="virgin-application">
+            Virgin application
+          </option>
+          <option value="retouch">
+            Retouch application
+          </option>
+          <option value="corrective">
+            Corrective application
+          </option>
+          <option value="strand-test-first">
+            Strand test first
+          </option>
           <option value="custom">Custom strategy</option>
         </Select>
       </div>
@@ -137,7 +200,10 @@ export default function FormulaPlanningForm({
           label="Processing notes"
           value={plan.processingNotes}
           onChange={(event) =>
-            updatePlan("processingNotes", event.target.value)
+            updatePlan(
+              "processingNotes",
+              event.target.value,
+            )
           }
           placeholder="Document timing checkpoints, visual monitoring, strand-test observations, and manufacturer guidance."
           rows={4}
@@ -147,26 +213,37 @@ export default function FormulaPlanningForm({
           label="Professional notes"
           value={plan.professionalNotes}
           onChange={(event) =>
-            updatePlan("professionalNotes", event.target.value)
+            updatePlan(
+              "professionalNotes",
+              event.target.value,
+            )
           }
           placeholder="Record client goals, zone differences, condition concerns, contingency plans, and follow-up recommendations."
           rows={5}
         />
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-6 flex flex-col gap-4 border-t border-white/10 pt-5">
         <p
           role="status"
           className="text-sm text-white/45"
         >
-          {isSaved
-            ? "Formula plan saved for this session."
-            : "The plan currently remains in local page state."}
+          {statusMessage}
         </p>
 
-        <Button type="submit">
-          Save formula plan
-        </Button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleClear}
+          >
+            Clear saved plan
+          </Button>
+
+          <Button type="submit">
+            Save formula plan
+          </Button>
+        </div>
       </div>
     </form>
   );
