@@ -1,6 +1,17 @@
+"use client";
+
+import FormulaSessionSummary from "@/components/formula-builder/FormulaSessionSummary";
 import AppShell from "@/components/layout/AppShell";
+import { useHairSession } from "@/context/HairSessionContext";
 
 export default function FormulaBuilderPage() {
+  const {
+    currentLevel,
+    targetLevel,
+    porosity,
+    selectedPigment,
+  } = useHairSession();
+
   return (
     <AppShell>
       <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-6 lg:px-8">
@@ -18,7 +29,16 @@ export default function FormulaBuilderPage() {
             and connect each decision to the underlying hair science.
           </p>
 
-          <div className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="mt-8">
+            <FormulaSessionSummary
+              currentLevel={currentLevel}
+              targetLevel={targetLevel}
+              porosity={porosity}
+              selectedPigment={selectedPigment}
+            />
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
             <section className="rounded-2xl border border-white/10 bg-black/20 p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">
                 Planning
