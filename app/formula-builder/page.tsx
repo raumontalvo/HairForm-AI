@@ -1,22 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import FormulaGuidance from "@/components/formula-builder/FormulaGuidance";
-import FormulaPlanningForm, {
-  type FormulaPlan,
-} from "@/components/formula-builder/FormulaPlanningForm";
+import FormulaPlanningForm from "@/components/formula-builder/FormulaPlanningForm";
 import FormulaSessionSummary from "@/components/formula-builder/FormulaSessionSummary";
 import AppShell from "@/components/layout/AppShell";
 import { useHairSession } from "@/context/HairSessionContext";
 import { buildFormulaGuidance } from "@/lib/hair-science/formula-guidance";
-
-const initialPlan: FormulaPlan = {
-  tonalFamily: "",
-  developerChoice: "",
-  applicationStrategy: "",
-  processingNotes: "",
-  professionalNotes: "",
-};
 
 export default function FormulaBuilderPage() {
   const {
@@ -24,18 +13,19 @@ export default function FormulaBuilderPage() {
     targetLevel,
     porosity,
     selectedPigment,
+    formulaPlan,
+    setFormulaPlan,
+    saveActiveSession,
   } = useHairSession();
-
-  const [plan, setPlan] = useState<FormulaPlan>(initialPlan);
 
   const guidance = buildFormulaGuidance({
     currentLevel,
     targetLevel,
     porosity,
     selectedPigment,
-    tonalFamily: plan.tonalFamily,
-    developerChoice: plan.developerChoice,
-    applicationStrategy: plan.applicationStrategy,
+    tonalFamily: formulaPlan.tonalFamily,
+    developerChoice: formulaPlan.developerChoice,
+    applicationStrategy: formulaPlan.applicationStrategy,
   });
 
   return (
@@ -65,7 +55,11 @@ export default function FormulaBuilderPage() {
           </div>
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-            <FormulaPlanningForm onPlanChange={setPlan} />
+            <FormulaPlanningForm
+              plan={formulaPlan}
+              onPlanChange={setFormulaPlan}
+              onSave={saveActiveSession}
+            />
 
             <FormulaGuidance guidance={guidance} />
           </div>

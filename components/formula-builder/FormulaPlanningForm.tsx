@@ -4,58 +4,33 @@ import { useState } from "react";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
-import {
-  clearFormulaPlan,
-  loadFormulaPlan,
-  saveFormulaPlan,
-} from "@/lib/formula-storage";
-
-export type FormulaPlan = {
-  tonalFamily: string;
-  developerChoice: string;
-  applicationStrategy: string;
-  processingNotes: string;
-  professionalNotes: string;
-};
+import type { FormulaPlan } from "@/lib/hair-session/types";
 
 type FormulaPlanningFormProps = {
-  onPlanChange?: (plan: FormulaPlan) => void;
+  plan: FormulaPlan;
+  onPlanChange: (plan: FormulaPlan) => void;
+  onSave: () => boolean;
 };
-
-const initialPlan: FormulaPlan = {
-  tonalFamily: "",
-  developerChoice: "",
-  applicationStrategy: "",
-  processingNotes: "",
-  professionalNotes: "",
-};
-
-function getInitialPlan(): FormulaPlan {
-  return loadFormulaPlan() ?? initialPlan;
-}
 
 export default function FormulaPlanningForm({
+  plan,
   onPlanChange,
+  onSave,
 }: FormulaPlanningFormProps) {
-  const [plan, setPlan] = useState<FormulaPlan>(getInitialPlan);
-  const [statusMessage, setStatusMessage] = useState(() =>
-    loadFormulaPlan()
-      ? "Saved formula plan restored from this device."
-      : "The plan currently remains in local page state.",
+  const [statusMessage, setStatusMessage] = useState(
+    "Changes are stored in the active Hair Session.",
   );
 
   function updatePlan<Key extends keyof FormulaPlan>(
     key: Key,
     value: FormulaPlan[Key],
   ) {
-    const nextPlan = {
+    onPlanChange({
       ...plan,
       [key]: value,
-    };
+    });
 
-    setPlan(nextPlan);
-    setStatusMessage("You have unsaved changes.");
-    onPlanChange?.(nextPlan);
+    setStatusMessage("You have unsaved session changes.");
   }
 
   function handleSubmit(
@@ -63,28 +38,27 @@ export default function FormulaPlanningForm({
   ) {
     event.preventDefault();
 
-    const didSave = saveFormulaPlan(plan);
+    const didSave = onSave();
 
     setStatusMessage(
       didSave
-        ? "Formula plan saved on this device."
-        : "The formula plan could not be saved.",
+        ? "Active Hair Session saved."
+        : "The active Hair Session could not be saved.",
     );
   }
 
   function handleClear() {
-    const didClear = clearFormulaPlan();
+    onPlanChange({
+      tonalFamily: "",
+      developerChoice: "",
+      applicationStrategy: "",
+      processingNotes: "",
+      professionalNotes: "",
+    });
 
-    if (!didClear) {
-      setStatusMessage(
-        "The saved formula plan could not be cleared.",
-      );
-      return;
-    }
-
-    setPlan(initialPlan);
-    onPlanChange?.(initialPlan);
-    setStatusMessage("Saved formula plan cleared.");
+    setStatusMessage(
+      "Formula plan cleared. Save the session to persist this change.",
+    );
   }
 
   return (
@@ -237,11 +211,11 @@ export default function FormulaPlanningForm({
             variant="secondary"
             onClick={handleClear}
           >
-            Clear saved plan
+            Clear formula plan
           </Button>
 
           <Button type="submit">
-            Save formula plan
+            Save active session
           </Button>
         </div>
       </div>
