@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+
 import AppShell from "@/components/layout/AppShell";
 import EmptyState from "@/components/sessions/EmptyState";
 import SessionList from "@/components/sessions/SessionList";
 import SessionToolbar from "@/components/sessions/SessionToolbar";
 import { useHairSession } from "@/context/HairSessionContext";
+import { useToast } from "@/context/ToastContext";
 import {
   deleteHairSession,
   listHairSessions,
@@ -69,6 +71,7 @@ function matchesSearch(
 export default function SavedSessionsPage() {
   const router = useRouter();
   const { loadSession } = useHairSession();
+  const toast = useToast();
 
   const [sessions, setSessions] = useState<HairSession[]>(
     () => listHairSessions(),
@@ -91,19 +94,23 @@ export default function SavedSessionsPage() {
     const session = createEmptyHairSession();
 
     if (!saveHairSession(session)) {
+      toast.error("Unable to create the hair session.");
       return;
     }
 
     refreshSessions();
+    toast.success("Hair session created.");
   }
 
   function handleOpen(session: HairSession) {
     const didLoad = loadSession(session.id);
 
     if (!didLoad) {
+      toast.error("Unable to load the selected hair session.");
       return;
     }
 
+    toast.success(`Opened "${session.name}".`);
     router.push("/color-lab");
   }
 
@@ -111,10 +118,12 @@ export default function SavedSessionsPage() {
     const duplicate = buildDuplicateSession(session);
 
     if (!saveHairSession(duplicate)) {
+      toast.error("Unable to duplicate the hair session.");
       return;
     }
 
     refreshSessions();
+    toast.success(`Duplicated "${session.name}".`);
   }
 
   function handleDelete(session: HairSession) {
@@ -127,10 +136,12 @@ export default function SavedSessionsPage() {
     }
 
     if (!deleteHairSession(session.id)) {
+      toast.error("Unable to delete the hair session.");
       return;
     }
 
     refreshSessions();
+    toast.success(`Deleted "${session.name}".`);
   }
 
   return (
