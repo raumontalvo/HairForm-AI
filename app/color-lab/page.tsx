@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import {
+  useRef,
+  useState,
+} from "react";
 
 import AnalysisPanel from "@/components/color-lab/AnalysisPanel";
 import ConsultationForm from "@/components/color-lab/ConsultationForm";
@@ -11,26 +14,57 @@ import {
   analyzeColorScenario,
   type ColorAnalysis,
 } from "@/lib/hair-science";
+import { createHairSessionEvent } from "@/lib/hair-session/timeline";
+
+function createAnalysisSignature({
+  currentLevel,
+  targetLevel,
+  porosity,
+  grayPercentage,
+  selectedPigment,
+}: {
+  currentLevel: number;
+  targetLevel: number;
+  porosity: string;
+  grayPercentage: number;
+  selectedPigment: string | null;
+}): string {
+  return JSON.stringify({
+    currentLevel,
+    targetLevel,
+    porosity,
+    grayPercentage,
+    selectedPigment,
+  });
+}
 
 export default function ColorLabPage() {
   const {
     currentLevel,
     targetLevel,
     porosity,
+    selectedPigment,
+    grayPercentage,
     setCurrentLevel,
     setTargetLevel,
     setPorosity,
+    appendTimelineEvent,
   } = useHairSession();
 
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] =
+    useState(false);
 
-  const [analysis, setAnalysis] = useState<ColorAnalysis>(() =>
-    analyzeColorScenario({
-      currentLevel,
-      targetLevel,
-      porosity,
-    }),
-  );
+  const [analysis, setAnalysis] =
+    useState<ColorAnalysis>(() =>
+      analyzeColorScenario({
+        currentLevel,
+        targetLevel,
+        porosity,
+      }),
+    );
+
+  const lastAnalyzedSignatureRef =
+    useRef<string | null>(null);
 
   async function handleAnalyze() {
     if (isAnalyzing) {
@@ -40,15 +74,64 @@ export default function ColorLabPage() {
     setIsAnalyzing(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 900));
+      await new Promise((resolve) =>
+        setTimeout(resolve, 900),
+      );
 
-      setAnalysis(
-        analyzeColorScenario({
+      const nextAnalysis = analyzeColorScenario({
+        currentLevel,
+        targetLevel,
+        porosity,
+      });
+
+      setAnalysis(nextAnalysis);
+
+      const analysisSignature =
+        createAnalysisSignature({
           currentLevel,
           targetLevel,
           porosity,
+          grayPercentage,
+          selectedPigment,
+        });
+
+      if (
+        lastAnalyzedSignatureRef.current ===
+        analysisSignature
+      ) {
+        return;
+      }
+
+      const liftRequired = Math.max(
+        targetLevel - currentLevel,
+        0,
+      );
+
+      appendTimelineEvent(
+        createHairSessionEvent({
+          type: "consultation-analyzed",
+          title: "Consultation analyzed",
+          description:
+            liftRequired > 0
+              ? `${liftRequired} ${
+                  liftRequired === 1
+                    ? "level"
+                    : "levels"
+                } of lift required`
+              : "No lift required",
+          metadata: {
+            currentLevel,
+            targetLevel,
+            liftRequired,
+            porosity,
+            grayPercentage,
+            selectedPigment,
+          },
         }),
       );
+
+      lastAnalyzedSignatureRef.current =
+        analysisSignature;
     } finally {
       setIsAnalyzing(false);
     }
@@ -62,7 +145,10 @@ export default function ColorLabPage() {
             href="/dashboard"
             className="text-xl font-semibold tracking-tight"
           >
-            HairForm <span className="text-amber-300">AI</span>
+            HairForm{" "}
+            <span className="text-amber-300">
+              AI
+            </span>
           </Link>
 
           <Link
@@ -87,9 +173,11 @@ export default function ColorLabPage() {
           </h1>
 
           <p className="mt-5 text-lg leading-8 text-white/60">
-            Build a consultation scenario and explore the color theory,
-            underlying pigment, lift requirements, neutralization strategy, and
-            safety considerations behind the result.
+            Build a consultation scenario and
+            explore the color theory, underlying
+            pigment, lift requirements,
+            neutralization strategy, and safety
+            considerations behind the result.
           </p>
         </section>
 
@@ -99,8 +187,12 @@ export default function ColorLabPage() {
             targetLevel={targetLevel}
             porosity={porosity}
             isAnalyzing={isAnalyzing}
-            onCurrentLevelChange={setCurrentLevel}
-            onTargetLevelChange={setTargetLevel}
+            onCurrentLevelChange={
+              setCurrentLevel
+            }
+            onTargetLevelChange={
+              setTargetLevel
+            }
             onPorosityChange={setPorosity}
             onAnalyze={handleAnalyze}
           />
