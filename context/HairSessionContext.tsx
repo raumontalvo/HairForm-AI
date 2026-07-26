@@ -14,8 +14,9 @@ import {
   loadHairSession,
   saveHairSession,
 } from "@/lib/hair-session/storage";
-import type {
-  HairSessionEvent,
+import {
+  createSessionCreatedEvent,
+  type HairSessionEvent,
 } from "@/lib/hair-session/timeline";
 import {
   createEmptyHairSession,
@@ -391,9 +392,12 @@ export function HairSessionProvider({
 
       applyStoredSession(newSession);
       setIsDirty(true);
+      appendTimelineEvent(
+        createSessionCreatedEvent(),
+      );
 
       return newSession;
-    }, [applyStoredSession]);
+    }, [appendTimelineEvent, applyStoredSession]);
 
   const resetSession = useCallback(() => {
     setActiveSessionId(initialState.activeSessionId);

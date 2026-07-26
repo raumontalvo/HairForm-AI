@@ -426,7 +426,7 @@ describe("HairSessionContext", () => {
     expect(result.current.isDirty).toBe(true);
   });
 
-  it("creates a new active session and marks it dirty", () => {
+  it("creates a new active session and records a timeline event", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -443,6 +443,13 @@ describe("HairSessionContext", () => {
     expect(mockedSaveHairSession).toHaveBeenCalledOnce();
     expect(result.current.activeSessionId).not.toBeNull();
     expect(result.current.isDirty).toBe(true);
+    expect(result.current.timeline).toHaveLength(1);
+    expect(result.current.timeline[0].type).toBe(
+      "session-created",
+    );
+    expect(result.current.timeline[0].title).toBe(
+      "Session created",
+    );
   });
 
   it("does not activate a new session when creation fails", () => {
@@ -464,6 +471,7 @@ describe("HairSessionContext", () => {
     expect(createdSession).toBeNull();
     expect(result.current.activeSessionId).toBeNull();
     expect(result.current.isDirty).toBe(false);
+    expect(result.current.timeline).toEqual([]);
   });
 
   it("resets the session to its clean initial state", () => {
