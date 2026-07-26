@@ -365,7 +365,7 @@ describe("HairSessionContext", () => {
     expect(result.current.isDirty).toBe(true);
   });
 
-  it("loads a stored session as clean", () => {
+  it("loads a stored session as clean and records a timeline event", () => {
     mockedLoadHairSession.mockReturnValue(
       storedSession,
     );
@@ -399,9 +399,20 @@ describe("HairSessionContext", () => {
     expect(result.current.currentLevel).toBe(4);
     expect(result.current.targetLevel).toBe(7);
     expect(result.current.isDirty).toBe(false);
+
+    expect(result.current.timeline).toHaveLength(1);
+    expect(result.current.timeline[0].type).toBe(
+      "session-loaded",
+    );
+    expect(result.current.timeline[0].title).toBe(
+      "Session opened",
+    );
+    expect(
+      result.current.timeline[0].metadata.sessionName,
+    ).toBe(storedSession.name);
   });
 
-  it("does not change state when a stored session cannot be loaded", () => {
+  it("does not change state or timeline when a session cannot be loaded", () => {
     mockedLoadHairSession.mockReturnValue(null);
 
     const { result } = renderHook(
@@ -424,6 +435,7 @@ describe("HairSessionContext", () => {
     expect(didLoad).toBe(false);
     expect(result.current.currentLevel).toBe(2);
     expect(result.current.isDirty).toBe(true);
+    expect(result.current.timeline).toEqual([]);
   });
 
   it("creates a new active session and records a timeline event", () => {

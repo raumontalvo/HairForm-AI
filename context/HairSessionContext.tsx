@@ -16,6 +16,7 @@ import {
 } from "@/lib/hair-session/storage";
 import {
   createSessionCreatedEvent,
+  createSessionLoadedEvent,
   type HairSessionEvent,
 } from "@/lib/hair-session/timeline";
 import {
@@ -301,9 +302,13 @@ export function HairSessionProvider({
       }
 
       applyStoredSession(storedSession);
+      appendTimelineEvent(
+        createSessionLoadedEvent(storedSession.name),
+      );
+
       return true;
     },
-    [applyStoredSession],
+    [appendTimelineEvent, applyStoredSession],
   );
 
   useEffect(() => {
