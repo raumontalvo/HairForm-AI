@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 
 import AnalysisPanel from "@/components/color-lab/AnalysisPanel";
 import ConsultationForm from "@/components/color-lab/ConsultationForm";
+import ActiveSessionHeader from "@/components/sessions/ActiveSessionHeader";
 import { useHairSession } from "@/context/HairSessionContext";
 import {
   analyzeColorScenario,
@@ -74,7 +75,9 @@ export default function ColorLabPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
-        <section className="max-w-3xl">
+        <ActiveSessionHeader />
+
+        <section className="mt-8 max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
             Flagship learning tool
           </p>
