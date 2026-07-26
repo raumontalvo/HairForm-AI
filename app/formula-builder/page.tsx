@@ -4,6 +4,7 @@ import FormulaGuidance from "@/components/formula-builder/FormulaGuidance";
 import FormulaPlanningForm from "@/components/formula-builder/FormulaPlanningForm";
 import FormulaSessionSummary from "@/components/formula-builder/FormulaSessionSummary";
 import AppShell from "@/components/layout/AppShell";
+import ActiveSessionHeader from "@/components/sessions/ActiveSessionHeader";
 import { useHairSession } from "@/context/HairSessionContext";
 import { buildFormulaGuidance } from "@/lib/hair-science/formula-guidance";
 
@@ -31,7 +32,9 @@ export default function FormulaBuilderPage() {
   return (
     <AppShell>
       <main className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-6 lg:px-8">
-        <section className="rounded-3xl border border-white/10 bg-[#111111] p-6 sm:p-8">
+        <ActiveSessionHeader />
+
+        <section className="mt-6 rounded-3xl border border-white/10 bg-[#111111] p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">
             Professional planning workspace
           </p>
