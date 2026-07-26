@@ -11,15 +11,18 @@ import {
 } from "react";
 
 import {
+  loadHairSession,
+  saveHairSession,
+} from "@/lib/hair-session/storage";
+import type {
+  HairSessionEvent,
+} from "@/lib/hair-session/timeline";
+import {
   createEmptyHairSession,
   emptyFormulaPlan,
   type FormulaPlan,
   type HairSession as StoredHairSession,
 } from "@/lib/hair-session/types";
-import {
-  loadHairSession,
-  saveHairSession,
-} from "@/lib/hair-session/storage";
 import type {
   ColorFamily,
   HairLevel,
@@ -43,6 +46,7 @@ type HairSessionState = {
   chemicalHistory: string;
   consultationNotes: string;
   formulaPlan: FormulaPlan;
+  timeline: HairSessionEvent[];
 };
 
 type HairSessionContextValue = HairSessionState & {
@@ -59,6 +63,9 @@ type HairSessionContextValue = HairSessionState & {
   setFormulaPlan: (plan: FormulaPlan) => void;
 
   markDirty: () => void;
+  appendTimelineEvent: (
+    event: HairSessionEvent,
+  ) => void;
   loadSession: (sessionId: string) => boolean;
   saveActiveSession: () => boolean;
   createNewSession: () => StoredHairSession | null;
@@ -81,6 +88,7 @@ const initialState: HairSessionState = {
   formulaPlan: {
     ...emptyFormulaPlan,
   },
+  timeline: [],
 };
 
 const HairSessionContext =
@@ -163,9 +171,23 @@ export function HairSessionProvider({
       ...initialState.formulaPlan,
     });
 
+  const [timeline, setTimeline] = useState<
+    HairSessionEvent[]
+  >(initialState.timeline);
+
   const markDirty = useCallback(() => {
     setIsDirty(true);
   }, []);
+
+  const appendTimelineEvent = useCallback(
+    (event: HairSessionEvent) => {
+      setTimeline((currentTimeline) => [
+        event,
+        ...currentTimeline,
+      ]);
+    },
+    [],
+  );
 
   const setSessionName = useCallback((name: string) => {
     setSessionNameState(name);
@@ -397,6 +419,7 @@ export function HairSessionProvider({
     setFormulaPlanState({
       ...initialState.formulaPlan,
     });
+    setTimeline([]);
 
     setStoredActiveSessionId(null);
   }, []);
@@ -416,6 +439,7 @@ export function HairSessionProvider({
       chemicalHistory,
       consultationNotes,
       formulaPlan,
+      timeline,
 
       setSessionName,
       setCurrentLevel,
@@ -428,6 +452,7 @@ export function HairSessionProvider({
       setFormulaPlan,
 
       markDirty,
+      appendTimelineEvent,
       loadSession,
       saveActiveSession,
       createNewSession,
@@ -435,6 +460,7 @@ export function HairSessionProvider({
     }),
     [
       activeSessionId,
+      appendTimelineEvent,
       chemicalHistory,
       consultationNotes,
       createNewSession,
@@ -459,6 +485,7 @@ export function HairSessionProvider({
       setSessionName,
       setTargetLevel,
       targetLevel,
+      timeline,
     ],
   );
 

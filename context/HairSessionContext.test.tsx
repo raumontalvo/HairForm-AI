@@ -4,6 +4,7 @@ import {
   act,
   renderHook,
 } from "@testing-library/react";
+import type { ReactNode } from "react";
 import {
   beforeEach,
   describe,
@@ -11,17 +12,17 @@ import {
   it,
   vi,
 } from "vitest";
-import type { ReactNode } from "react";
 
 import {
   HairSessionProvider,
   useHairSession,
 } from "@/context/HairSessionContext";
-import type { HairSession } from "@/lib/hair-session/types";
 import {
   loadHairSession,
   saveHairSession,
 } from "@/lib/hair-session/storage";
+import type { HairSessionEvent } from "@/lib/hair-session/timeline";
+import type { HairSession } from "@/lib/hair-session/types";
 
 vi.mock("@/lib/hair-session/storage", () => ({
   loadHairSession: vi.fn(),
@@ -54,6 +55,15 @@ const storedSession: HairSession = {
     applicationStrategy: "Apply mids and ends first",
     processingNotes: "Check every 10 minutes",
   },
+};
+
+const timelineEvent: HairSessionEvent = {
+  id: "timeline-event",
+  type: "custom",
+  title: "Timeline event",
+  description: "Created during test",
+  createdAt: "2026-01-01T12:00:00.000Z",
+  metadata: {},
 };
 
 function wrapper({
@@ -89,6 +99,15 @@ describe("HairSessionContext", () => {
 
     expect(result.current.activeSessionId).toBeNull();
     expect(result.current.isDirty).toBe(false);
+  });
+
+  it("starts with an empty timeline", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    expect(result.current.timeline).toEqual([]);
   });
 
   it("marks the session dirty when the name changes", () => {
@@ -251,6 +270,50 @@ describe("HairSessionContext", () => {
     });
 
     expect(result.current.isDirty).toBe(true);
+  });
+
+  it("appends a timeline event", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.appendTimelineEvent(
+        timelineEvent,
+      );
+    });
+
+    expect(result.current.timeline).toEqual([
+      timelineEvent,
+    ]);
+  });
+
+  it("prepends newer timeline events", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    const newerEvent: HairSessionEvent = {
+      ...timelineEvent,
+      id: "newer-event",
+      title: "Newer event",
+    };
+
+    act(() => {
+      result.current.appendTimelineEvent(
+        timelineEvent,
+      );
+      result.current.appendTimelineEvent(
+        newerEvent,
+      );
+    });
+
+    expect(result.current.timeline).toEqual([
+      newerEvent,
+      timelineEvent,
+    ]);
   });
 
   it("clears the dirty state after a successful save", () => {
@@ -430,5 +493,26 @@ describe("HairSessionContext", () => {
     expect(result.current.targetLevel).toBe(8);
     expect(result.current.porosity).toBe("Medium");
     expect(result.current.isDirty).toBe(false);
+  });
+
+  it("clears the timeline when the session is reset", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.appendTimelineEvent(
+        timelineEvent,
+      );
+    });
+
+    expect(result.current.timeline).toHaveLength(1);
+
+    act(() => {
+      result.current.resetSession();
+    });
+
+    expect(result.current.timeline).toEqual([]);
   });
 });
