@@ -9,6 +9,7 @@ import {
 import AnalysisPanel from "@/components/color-lab/AnalysisPanel";
 import ConsultationForm from "@/components/color-lab/ConsultationForm";
 import ActiveSessionHeader from "@/components/sessions/ActiveSessionHeader";
+import SessionTimeline from "@/components/sessions/SessionTimeline";
 import { useHairSession } from "@/context/HairSessionContext";
 import {
   analyzeColorScenario,
@@ -202,6 +203,10 @@ export default function ColorLabPage() {
             targetLevel={targetLevel}
             analysis={analysis}
           />
+        </div>
+
+        <div className="mt-6">
+          <SessionTimeline />
         </div>
       </div>
     </main>
