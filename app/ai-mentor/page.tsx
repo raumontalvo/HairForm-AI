@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import ChatWindow from "@/components/ai-mentor/ChatWindow";
+import ActiveSessionHeader from "@/components/sessions/ActiveSessionHeader";
 
 export default function AiMentorPage() {
   return (
@@ -24,7 +25,9 @@ export default function AiMentorPage() {
       </header>
 
       <div className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
-        <div className="max-w-3xl">
+        <ActiveSessionHeader />
+
+        <div className="mt-8 max-w-3xl">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
             AI Mentor
           </p>
