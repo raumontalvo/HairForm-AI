@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import ChatWindow from "@/components/ai-mentor/ChatWindow";
 import ActiveSessionHeader from "@/components/sessions/ActiveSessionHeader";
+import SessionTimeline from "@/components/sessions/SessionTimeline";
 
 export default function AiMentorPage() {
   return (
@@ -44,6 +45,10 @@ export default function AiMentorPage() {
 
         <div className="mt-10">
           <ChatWindow />
+        </div>
+
+        <div className="mt-6">
+          <SessionTimeline />
         </div>
       </div>
     </main>
