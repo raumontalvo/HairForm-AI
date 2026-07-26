@@ -32,6 +32,7 @@ const ACTIVE_SESSION_STORAGE_KEY =
 type HairSessionState = {
   activeSessionId: string | null;
   sessionName: string;
+  isDirty: boolean;
 
   currentLevel: HairLevel;
   targetLevel: HairLevel;
@@ -57,6 +58,7 @@ type HairSessionContextValue = HairSessionState & {
   setConsultationNotes: (notes: string) => void;
   setFormulaPlan: (plan: FormulaPlan) => void;
 
+  markDirty: () => void;
   loadSession: (sessionId: string) => boolean;
   saveActiveSession: () => boolean;
   createNewSession: () => StoredHairSession | null;
@@ -66,6 +68,7 @@ type HairSessionContextValue = HairSessionState & {
 const initialState: HairSessionState = {
   activeSessionId: null,
   sessionName: "Untitled Hair Session",
+  isDirty: false,
 
   currentLevel: 5,
   targetLevel: 8,
@@ -124,64 +127,143 @@ export function HairSessionProvider({
     string | null
   >(initialState.activeSessionId);
 
-  const [sessionName, setSessionName] = useState(
+  const [sessionName, setSessionNameState] = useState(
     initialState.sessionName,
   );
 
-  const [currentLevel, setCurrentLevel] =
-    useState<HairLevel>(initialState.currentLevel);
-
-  const [targetLevel, setTargetLevel] =
-    useState<HairLevel>(initialState.targetLevel);
-
-  const [porosity, setPorosity] = useState<Porosity>(
-    initialState.porosity,
+  const [isDirty, setIsDirty] = useState(
+    initialState.isDirty,
   );
 
-  const [selectedPigment, setSelectedPigment] =
+  const [currentLevel, setCurrentLevelState] =
+    useState<HairLevel>(initialState.currentLevel);
+
+  const [targetLevel, setTargetLevelState] =
+    useState<HairLevel>(initialState.targetLevel);
+
+  const [porosity, setPorosityState] =
+    useState<Porosity>(initialState.porosity);
+
+  const [selectedPigment, setSelectedPigmentState] =
     useState<ColorFamily | null>(
       initialState.selectedPigment,
     );
 
-  const [grayPercentage, setGrayPercentage] = useState(
-    initialState.grayPercentage,
-  );
+  const [grayPercentage, setGrayPercentageState] =
+    useState(initialState.grayPercentage);
 
-  const [chemicalHistory, setChemicalHistory] = useState(
-    initialState.chemicalHistory,
-  );
+  const [chemicalHistory, setChemicalHistoryState] =
+    useState(initialState.chemicalHistory);
 
-  const [consultationNotes, setConsultationNotes] =
+  const [consultationNotes, setConsultationNotesState] =
     useState(initialState.consultationNotes);
 
-  const [formulaPlan, setFormulaPlan] =
+  const [formulaPlan, setFormulaPlanState] =
     useState<FormulaPlan>({
       ...initialState.formulaPlan,
     });
 
+  const markDirty = useCallback(() => {
+    setIsDirty(true);
+  }, []);
+
+  const setSessionName = useCallback((name: string) => {
+    setSessionNameState(name);
+    setIsDirty(true);
+  }, []);
+
+  const setCurrentLevel = useCallback(
+    (level: HairLevel) => {
+      setCurrentLevelState(level);
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const setTargetLevel = useCallback(
+    (level: HairLevel) => {
+      setTargetLevelState(level);
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const setPorosity = useCallback(
+    (nextPorosity: Porosity) => {
+      setPorosityState(nextPorosity);
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const setSelectedPigment = useCallback(
+    (pigment: ColorFamily | null) => {
+      setSelectedPigmentState(pigment);
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const setGrayPercentage = useCallback(
+    (percentage: number) => {
+      setGrayPercentageState(percentage);
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const setChemicalHistory = useCallback(
+    (history: string) => {
+      setChemicalHistoryState(history);
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const setConsultationNotes = useCallback(
+    (notes: string) => {
+      setConsultationNotesState(notes);
+      setIsDirty(true);
+    },
+    [],
+  );
+
+  const setFormulaPlan = useCallback(
+    (plan: FormulaPlan) => {
+      setFormulaPlanState({
+        ...plan,
+      });
+      setIsDirty(true);
+    },
+    [],
+  );
+
   const applyStoredSession = useCallback(
     (session: StoredHairSession) => {
       setActiveSessionId(session.id);
-      setSessionName(session.name);
+      setSessionNameState(session.name);
 
-      setCurrentLevel(
+      setCurrentLevelState(
         session.currentLevel as HairLevel,
       );
-      setTargetLevel(
+      setTargetLevelState(
         session.targetLevel as HairLevel,
       );
-      setPorosity(session.porosity as Porosity);
-      setSelectedPigment(
+      setPorosityState(session.porosity as Porosity);
+      setSelectedPigmentState(
         session.selectedPigment as ColorFamily | null,
       );
 
-      setGrayPercentage(session.grayPercentage);
-      setChemicalHistory(session.chemicalHistory);
-      setConsultationNotes(session.consultationNotes);
-      setFormulaPlan({
+      setGrayPercentageState(session.grayPercentage);
+      setChemicalHistoryState(session.chemicalHistory);
+      setConsultationNotesState(
+        session.consultationNotes,
+      );
+      setFormulaPlanState({
         ...session.formulaPlan,
       });
 
+      setIsDirty(false);
       setStoredActiveSessionId(session.id);
     },
     [],
@@ -259,6 +341,8 @@ export function HairSessionProvider({
     }
 
     setActiveSessionId(sessionId);
+    setSessionNameState(session.name);
+    setIsDirty(false);
     setStoredActiveSessionId(sessionId);
 
     return true;
@@ -284,26 +368,33 @@ export function HairSessionProvider({
       }
 
       applyStoredSession(newSession);
+      setIsDirty(true);
+
       return newSession;
     }, [applyStoredSession]);
 
   const resetSession = useCallback(() => {
     setActiveSessionId(initialState.activeSessionId);
-    setSessionName(initialState.sessionName);
+    setSessionNameState(initialState.sessionName);
+    setIsDirty(initialState.isDirty);
 
-    setCurrentLevel(initialState.currentLevel);
-    setTargetLevel(initialState.targetLevel);
-    setPorosity(initialState.porosity);
-    setSelectedPigment(
+    setCurrentLevelState(initialState.currentLevel);
+    setTargetLevelState(initialState.targetLevel);
+    setPorosityState(initialState.porosity);
+    setSelectedPigmentState(
       initialState.selectedPigment,
     );
 
-    setGrayPercentage(initialState.grayPercentage);
-    setChemicalHistory(initialState.chemicalHistory);
-    setConsultationNotes(
+    setGrayPercentageState(
+      initialState.grayPercentage,
+    );
+    setChemicalHistoryState(
+      initialState.chemicalHistory,
+    );
+    setConsultationNotesState(
       initialState.consultationNotes,
     );
-    setFormulaPlan({
+    setFormulaPlanState({
       ...initialState.formulaPlan,
     });
 
@@ -314,6 +405,7 @@ export function HairSessionProvider({
     () => ({
       activeSessionId,
       sessionName,
+      isDirty,
 
       currentLevel,
       targetLevel,
@@ -335,6 +427,7 @@ export function HairSessionProvider({
       setConsultationNotes,
       setFormulaPlan,
 
+      markDirty,
       loadSession,
       saveActiveSession,
       createNewSession,
@@ -348,12 +441,23 @@ export function HairSessionProvider({
       currentLevel,
       formulaPlan,
       grayPercentage,
+      isDirty,
       loadSession,
+      markDirty,
       porosity,
       resetSession,
       saveActiveSession,
       selectedPigment,
       sessionName,
+      setChemicalHistory,
+      setConsultationNotes,
+      setCurrentLevel,
+      setFormulaPlan,
+      setGrayPercentage,
+      setPorosity,
+      setSelectedPigment,
+      setSessionName,
+      setTargetLevel,
       targetLevel,
     ],
   );

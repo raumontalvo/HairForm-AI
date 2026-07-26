@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
 import Button from "@/components/ui/Button";
 import { useHairSession } from "@/context/HairSessionContext";
 
@@ -11,10 +12,37 @@ export default function ActiveSessionHeader() {
     sessionName,
     currentLevel,
     targetLevel,
+    isDirty,
     saveActiveSession,
   } = useHairSession();
 
   const [statusMessage, setStatusMessage] = useState("");
+
+  const sessionStatus = useMemo(() => {
+    if (!activeSessionId) {
+      return {
+        label: "New session",
+        className:
+          "border-sky-300/20 bg-sky-300/10 text-sky-200",
+      };
+    }
+
+    if (isDirty) {
+      return {
+        label: "Unsaved changes",
+        className:
+          "border-amber-300/20 bg-amber-300/10 text-amber-200",
+      };
+    }
+
+    return {
+      label: "Saved",
+      className:
+        "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
+    };
+  }, [activeSessionId, isDirty]);
+
+  const canSave = !activeSessionId || isDirty;
 
   function handleSave() {
     const didSave = saveActiveSession();
@@ -43,8 +71,13 @@ export default function ActiveSessionHeader() {
               Level {currentLevel} → Level {targetLevel}
             </span>
 
-            <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-medium text-white/50">
-              {activeSessionId ? "Saved session" : "Unsaved session"}
+            <span
+              className={[
+                "rounded-full border px-3 py-1 text-xs font-medium",
+                sessionStatus.className,
+              ].join(" ")}
+            >
+              {sessionStatus.label}
             </span>
           </div>
 
@@ -66,8 +99,13 @@ export default function ActiveSessionHeader() {
             View sessions
           </Link>
 
-          <Button onClick={handleSave}>
-            Save session
+          <Button
+            onClick={handleSave}
+            disabled={!canSave}
+          >
+            {isDirty || !activeSessionId
+              ? "Save session"
+              : "Session saved"}
           </Button>
         </div>
       </div>
