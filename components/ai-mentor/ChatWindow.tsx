@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import ChatInput from "@/components/ai-mentor/ChatInput";
 import ChatMessage from "@/components/ai-mentor/ChatMessage";
 import HairSessionSummary from "@/components/ai-mentor/HairSessionSummary";
@@ -10,6 +11,7 @@ import { useHairSession } from "@/context/HairSessionContext";
 import type { ChatMessage as ChatMessageType } from "@/lib/ai/types";
 import { buildMentorResponse } from "@/lib/hair-science/mentor/buildResponse";
 import { buildMentorPrompts } from "@/lib/hair-science/mentor/prompts";
+import { createMentorQuestionEvent } from "@/lib/hair-session/timeline";
 
 export default function ChatWindow() {
   const {
@@ -17,6 +19,7 @@ export default function ChatWindow() {
     targetLevel,
     porosity,
     selectedPigment,
+    appendTimelineEvent,
   } = useHairSession();
 
   const mentorContext = {
@@ -30,7 +33,9 @@ export default function ChatWindow() {
     ? `You are exploring ${selectedPigment.toLowerCase()} in the current Hair Session. Ask me why this pigment appears, how its complement works, or how it connects to neutralization.`
     : "Welcome to HairForm AI Mentor. Ask me about color theory, corrective color, haircut geometry, consultations, or professional salon scenarios.";
 
-  const [messages, setMessages] = useState<ChatMessageType[]>([
+  const [messages, setMessages] = useState<
+    ChatMessageType[]
+  >([
     {
       id: "welcome-message",
       role: "assistant",
@@ -39,9 +44,11 @@ export default function ChatWindow() {
     },
   ]);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] =
+    useState(false);
 
-  const suggestions = buildMentorPrompts(mentorContext);
+  const suggestions =
+    buildMentorPrompts(mentorContext);
 
   async function handleSubmit(content: string) {
     const trimmedContent = content.trim();
@@ -65,7 +72,9 @@ export default function ChatWindow() {
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 900));
+      await new Promise((resolve) =>
+        setTimeout(resolve, 900),
+      );
 
       const assistantMessage: ChatMessageType = {
         id: crypto.randomUUID(),
@@ -81,6 +90,12 @@ export default function ChatWindow() {
         ...currentMessages,
         assistantMessage,
       ]);
+
+      appendTimelineEvent(
+        createMentorQuestionEvent(
+          trimmedContent,
+        ),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -110,10 +125,15 @@ export default function ChatWindow() {
 
         <div className="space-y-5">
           {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
+            <ChatMessage
+              key={message.id}
+              message={message}
+            />
           ))}
 
-          {isSubmitting ? <TypingIndicator /> : null}
+          {isSubmitting ? (
+            <TypingIndicator />
+          ) : null}
         </div>
 
         <PromptSuggestions
