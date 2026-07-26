@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import Button from "@/components/ui/Button";
 import { useHairSession } from "@/context/HairSessionContext";
+import { useToast } from "@/context/ToastContext";
 
 export default function ActiveSessionHeader() {
   const {
@@ -16,7 +17,7 @@ export default function ActiveSessionHeader() {
     saveActiveSession,
   } = useHairSession();
 
-  const [statusMessage, setStatusMessage] = useState("");
+  const toast = useToast();
 
   const sessionStatus = useMemo(() => {
     if (!activeSessionId) {
@@ -47,11 +48,12 @@ export default function ActiveSessionHeader() {
   function handleSave() {
     const didSave = saveActiveSession();
 
-    setStatusMessage(
-      didSave
-        ? "Session saved successfully."
-        : "The session could not be saved.",
-    );
+    if (didSave) {
+      toast.success("Hair session saved.");
+      return;
+    }
+
+    toast.error("The hair session could not be saved.");
   }
 
   return (
@@ -80,15 +82,6 @@ export default function ActiveSessionHeader() {
               {sessionStatus.label}
             </span>
           </div>
-
-          {statusMessage ? (
-            <p
-              role="status"
-              className="mt-2 text-sm text-white/45"
-            >
-              {statusMessage}
-            </p>
-          ) : null}
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">

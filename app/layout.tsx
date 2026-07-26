@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import ToastContainer from "@/components/toast/ToastContainer";
 import { HairSessionProvider } from "@/context/HairSessionContext";
+import { ToastProvider } from "@/context/ToastContext";
 
 import "./globals.css";
 
@@ -29,7 +31,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <HairSessionProvider>{children}</HairSessionProvider>
+        <ToastProvider>
+          <HairSessionProvider>
+            {children}
+            <ToastContainer />
+          </HairSessionProvider>
+        </ToastProvider>
       </body>
     </html>
   );
