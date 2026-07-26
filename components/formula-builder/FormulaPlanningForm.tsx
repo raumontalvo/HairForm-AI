@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
+import { useToast } from "@/context/ToastContext";
 import type { FormulaPlan } from "@/lib/hair-session/types";
 
 type FormulaPlanningFormProps = {
@@ -17,9 +17,7 @@ export default function FormulaPlanningForm({
   onPlanChange,
   onSave,
 }: FormulaPlanningFormProps) {
-  const [statusMessage, setStatusMessage] = useState(
-    "Changes are stored in the active Hair Session.",
-  );
+  const toast = useToast();
 
   function updatePlan<Key extends keyof FormulaPlan>(
     key: Key,
@@ -29,8 +27,6 @@ export default function FormulaPlanningForm({
       ...plan,
       [key]: value,
     });
-
-    setStatusMessage("You have unsaved session changes.");
   }
 
   function handleSubmit(
@@ -40,10 +36,13 @@ export default function FormulaPlanningForm({
 
     const didSave = onSave();
 
-    setStatusMessage(
-      didSave
-        ? "Active Hair Session saved."
-        : "The active Hair Session could not be saved.",
+    if (didSave) {
+      toast.success("Active Hair Session saved.");
+      return;
+    }
+
+    toast.error(
+      "The active Hair Session could not be saved.",
     );
   }
 
@@ -56,8 +55,8 @@ export default function FormulaPlanningForm({
       professionalNotes: "",
     });
 
-    setStatusMessage(
-      "Formula plan cleared. Save the session to persist this change.",
+    toast.info(
+      "Formula plan cleared. Save the session to keep this change.",
     );
   }
 
@@ -197,27 +196,18 @@ export default function FormulaPlanningForm({
         />
       </div>
 
-      <div className="mt-6 flex flex-col gap-4 border-t border-white/10 pt-5">
-        <p
-          role="status"
-          className="text-sm text-white/45"
+      <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:justify-end">
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={handleClear}
         >
-          {statusMessage}
-        </p>
+          Clear formula plan
+        </Button>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={handleClear}
-          >
-            Clear formula plan
-          </Button>
-
-          <Button type="submit">
-            Save active session
-          </Button>
-        </div>
+        <Button type="submit">
+          Save active session
+        </Button>
       </div>
     </form>
   );
