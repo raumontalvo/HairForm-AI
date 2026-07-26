@@ -1,10 +1,13 @@
 import AppShell from "@/components/layout/AppShell";
 import LiftJourney from "@/components/lift-journey/LiftJourney";
+import ActiveSessionHeader from "@/components/sessions/ActiveSessionHeader";
 
 export default function LiftJourneyPage() {
   return (
     <AppShell title="Lift Journey">
-      <section className="max-w-3xl">
+      <ActiveSessionHeader />
+
+      <section className="mt-8 max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
           Hair science
         </p>
