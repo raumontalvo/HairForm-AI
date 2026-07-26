@@ -15,8 +15,14 @@ import {
   saveHairSession,
 } from "@/lib/hair-session/storage";
 import {
+  createFormulaClearedEvent,
+  createFormulaUpdatedEvent,
+  createHairSessionEvent,
+  createLevelChangedEvent,
+  createPorosityChangedEvent,
   createSessionCreatedEvent,
   createSessionLoadedEvent,
+  createSessionSavedEvent,
   type HairSessionEvent,
 } from "@/lib/hair-session/timeline";
 import {
@@ -33,6 +39,14 @@ import type {
 
 const ACTIVE_SESSION_STORAGE_KEY =
   "hairform-ai:active-session-id";
+
+const formulaPlanKeys: Array<keyof FormulaPlan> = [
+  "tonalFamily",
+  "developerChoice",
+  "applicationStrategy",
+  "processingNotes",
+  "professionalNotes",
+];
 
 type HairSessionState = {
   activeSessionId: string | null;
@@ -130,6 +144,53 @@ function getStoredActiveSessionId(): string | null {
   );
 }
 
+function normalizeFormulaValue(
+  value: FormulaPlan[keyof FormulaPlan],
+): string {
+  return typeof value === "string"
+    ? value.trim()
+    : "";
+}
+
+function areFormulaPlansEqual(
+  firstPlan: FormulaPlan,
+  secondPlan: FormulaPlan,
+): boolean {
+  return formulaPlanKeys.every(
+    (key) =>
+      normalizeFormulaValue(firstPlan[key]) ===
+      normalizeFormulaValue(secondPlan[key]),
+  );
+}
+
+function isFormulaPlanEmpty(
+  plan: FormulaPlan,
+): boolean {
+  return formulaPlanKeys.every(
+    (key) =>
+      normalizeFormulaValue(plan[key]).length === 0,
+  );
+}
+
+function createPigmentChangedEvent(
+  previousPigment: ColorFamily | null,
+  nextPigment: ColorFamily | null,
+): HairSessionEvent {
+  const previousLabel =
+    previousPigment ?? "None";
+  const nextLabel = nextPigment ?? "None";
+
+  return createHairSessionEvent({
+    type: "pigment-changed",
+    title: "Pigment changed",
+    description: `${previousLabel} → ${nextLabel}`,
+    metadata: {
+      previousPigment,
+      nextPigment,
+    },
+  });
+}
+
 export function HairSessionProvider({
   children,
 }: HairSessionProviderProps) {
@@ -191,75 +252,155 @@ export function HairSessionProvider({
     [],
   );
 
-  const setSessionName = useCallback((name: string) => {
-    setSessionNameState(name);
-    setIsDirty(true);
-  }, []);
+  const setSessionName = useCallback(
+    (name: string) => {
+      if (name === sessionName) {
+        return;
+      }
+
+      setSessionNameState(name);
+      setIsDirty(true);
+    },
+    [sessionName],
+  );
 
   const setCurrentLevel = useCallback(
     (level: HairLevel) => {
+      if (level === currentLevel) {
+        return;
+      }
+
+      const event = createLevelChangedEvent(
+        "current",
+        currentLevel,
+        level,
+      );
+
       setCurrentLevelState(level);
       setIsDirty(true);
+      appendTimelineEvent(event);
     },
-    [],
+    [appendTimelineEvent, currentLevel],
   );
 
   const setTargetLevel = useCallback(
     (level: HairLevel) => {
+      if (level === targetLevel) {
+        return;
+      }
+
+      const event = createLevelChangedEvent(
+        "target",
+        targetLevel,
+        level,
+      );
+
       setTargetLevelState(level);
       setIsDirty(true);
+      appendTimelineEvent(event);
     },
-    [],
+    [appendTimelineEvent, targetLevel],
   );
 
   const setPorosity = useCallback(
     (nextPorosity: Porosity) => {
+      if (nextPorosity === porosity) {
+        return;
+      }
+
+      const event = createPorosityChangedEvent(
+        porosity,
+        nextPorosity,
+      );
+
       setPorosityState(nextPorosity);
       setIsDirty(true);
+      appendTimelineEvent(event);
     },
-    [],
+    [appendTimelineEvent, porosity],
   );
 
   const setSelectedPigment = useCallback(
     (pigment: ColorFamily | null) => {
+      if (pigment === selectedPigment) {
+        return;
+      }
+
+      const event = createPigmentChangedEvent(
+        selectedPigment,
+        pigment,
+      );
+
       setSelectedPigmentState(pigment);
       setIsDirty(true);
+      appendTimelineEvent(event);
     },
-    [],
+    [appendTimelineEvent, selectedPigment],
   );
 
   const setGrayPercentage = useCallback(
     (percentage: number) => {
+      if (percentage === grayPercentage) {
+        return;
+      }
+
       setGrayPercentageState(percentage);
       setIsDirty(true);
     },
-    [],
+    [grayPercentage],
   );
 
   const setChemicalHistory = useCallback(
     (history: string) => {
+      if (history === chemicalHistory) {
+        return;
+      }
+
       setChemicalHistoryState(history);
       setIsDirty(true);
     },
-    [],
+    [chemicalHistory],
   );
 
   const setConsultationNotes = useCallback(
     (notes: string) => {
+      if (notes === consultationNotes) {
+        return;
+      }
+
       setConsultationNotesState(notes);
       setIsDirty(true);
     },
-    [],
+    [consultationNotes],
   );
 
   const setFormulaPlan = useCallback(
     (plan: FormulaPlan) => {
+      if (areFormulaPlansEqual(formulaPlan, plan)) {
+        return;
+      }
+
+      const wasEmpty =
+        isFormulaPlanEmpty(formulaPlan);
+      const isNowEmpty = isFormulaPlanEmpty(plan);
+
       setFormulaPlanState({
         ...plan,
       });
       setIsDirty(true);
+
+      if (!wasEmpty && isNowEmpty) {
+        appendTimelineEvent(
+          createFormulaClearedEvent(),
+        );
+        return;
+      }
+
+      appendTimelineEvent(
+        createFormulaUpdatedEvent(),
+      );
     },
-    [],
+    [appendTimelineEvent, formulaPlan],
   );
 
   const applyStoredSession = useCallback(
@@ -302,13 +443,15 @@ export function HairSessionProvider({
       }
 
       applyStoredSession(storedSession);
-      appendTimelineEvent(
-        createSessionLoadedEvent(storedSession.name),
-      );
+      setTimeline([
+        createSessionLoadedEvent(
+          storedSession.name,
+        ),
+      ]);
 
       return true;
     },
-    [appendTimelineEvent, applyStoredSession],
+    [applyStoredSession],
   );
 
   useEffect(() => {
@@ -328,6 +471,7 @@ export function HairSessionProvider({
 
     queueMicrotask(() => {
       applyStoredSession(storedSession);
+      setTimeline([]);
     });
   }, [applyStoredSession]);
 
@@ -373,9 +517,14 @@ export function HairSessionProvider({
     setIsDirty(false);
     setStoredActiveSessionId(sessionId);
 
+    appendTimelineEvent(
+      createSessionSavedEvent(session.name),
+    );
+
     return true;
   }, [
     activeSessionId,
+    appendTimelineEvent,
     chemicalHistory,
     consultationNotes,
     currentLevel,
@@ -397,12 +546,12 @@ export function HairSessionProvider({
 
       applyStoredSession(newSession);
       setIsDirty(true);
-      appendTimelineEvent(
+      setTimeline([
         createSessionCreatedEvent(),
-      );
+      ]);
 
       return newSession;
-    }, [appendTimelineEvent, applyStoredSession]);
+    }, [applyStoredSession]);
 
   const resetSession = useCallback(() => {
     setActiveSessionId(initialState.activeSessionId);

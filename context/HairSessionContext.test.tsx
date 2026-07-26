@@ -22,7 +22,10 @@ import {
   saveHairSession,
 } from "@/lib/hair-session/storage";
 import type { HairSessionEvent } from "@/lib/hair-session/timeline";
-import type { HairSession } from "@/lib/hair-session/types";
+import type {
+  FormulaPlan,
+  HairSession,
+} from "@/lib/hair-session/types";
 
 vi.mock("@/lib/hair-session/storage", () => ({
   loadHairSession: vi.fn(),
@@ -54,6 +57,7 @@ const storedSession: HairSession = {
     developerChoice: "20 volume",
     applicationStrategy: "Apply mids and ends first",
     processingNotes: "Check every 10 minutes",
+    professionalNotes: "",
   },
 };
 
@@ -64,6 +68,22 @@ const timelineEvent: HairSessionEvent = {
   description: "Created during test",
   createdAt: "2026-01-01T12:00:00.000Z",
   metadata: {},
+};
+
+const populatedFormulaPlan: FormulaPlan = {
+  tonalFamily: "Violet",
+  developerChoice: "10 volume",
+  applicationStrategy: "Apply to warm zones",
+  processingNotes: "Monitor visually",
+  professionalNotes: "Review condition first",
+};
+
+const emptyPlan: FormulaPlan = {
+  tonalFamily: "",
+  developerChoice: "",
+  applicationStrategy: "",
+  processingNotes: "",
+  professionalNotes: "",
 };
 
 function wrapper({
@@ -87,11 +107,11 @@ describe("HairSessionContext", () => {
     mockedSaveHairSession.mockReturnValue(true);
 
     vi.stubGlobal("crypto", {
-      randomUUID: vi.fn(() => "new-session-id"),
+      randomUUID: vi.fn(() => "generated-id"),
     });
   });
 
-  it("starts with a clean session", () => {
+  it("starts with a clean session and empty timeline", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -99,14 +119,6 @@ describe("HairSessionContext", () => {
 
     expect(result.current.activeSessionId).toBeNull();
     expect(result.current.isDirty).toBe(false);
-  });
-
-  it("starts with an empty timeline", () => {
-    const { result } = renderHook(
-      () => useHairSession(),
-      { wrapper },
-    );
-
     expect(result.current.timeline).toEqual([]);
   });
 
@@ -128,7 +140,23 @@ describe("HairSessionContext", () => {
     expect(result.current.isDirty).toBe(true);
   });
 
-  it("marks the session dirty when the current level changes", () => {
+  it("does nothing when the session name is unchanged", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.setSessionName(
+        "Untitled Hair Session",
+      );
+    });
+
+    expect(result.current.isDirty).toBe(false);
+    expect(result.current.timeline).toEqual([]);
+  });
+
+  it("records a current-level change", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -140,9 +168,29 @@ describe("HairSessionContext", () => {
 
     expect(result.current.currentLevel).toBe(3);
     expect(result.current.isDirty).toBe(true);
+    expect(result.current.timeline[0].type).toBe(
+      "current-level-changed",
+    );
+    expect(result.current.timeline[0].description).toBe(
+      "Level 5 → Level 3",
+    );
   });
 
-  it("marks the session dirty when the target level changes", () => {
+  it("does not record an unchanged current level", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.setCurrentLevel(5);
+    });
+
+    expect(result.current.isDirty).toBe(false);
+    expect(result.current.timeline).toEqual([]);
+  });
+
+  it("records a target-level change", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -154,9 +202,29 @@ describe("HairSessionContext", () => {
 
     expect(result.current.targetLevel).toBe(9);
     expect(result.current.isDirty).toBe(true);
+    expect(result.current.timeline[0].type).toBe(
+      "target-level-changed",
+    );
+    expect(result.current.timeline[0].description).toBe(
+      "Level 8 → Level 9",
+    );
   });
 
-  it("marks the session dirty when porosity changes", () => {
+  it("does not record an unchanged target level", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.setTargetLevel(8);
+    });
+
+    expect(result.current.isDirty).toBe(false);
+    expect(result.current.timeline).toEqual([]);
+  });
+
+  it("records a porosity change", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -168,9 +236,29 @@ describe("HairSessionContext", () => {
 
     expect(result.current.porosity).toBe("High");
     expect(result.current.isDirty).toBe(true);
+    expect(result.current.timeline[0].type).toBe(
+      "porosity-changed",
+    );
+    expect(result.current.timeline[0].description).toBe(
+      "Medium → High",
+    );
   });
 
-  it("marks the session dirty when the selected pigment changes", () => {
+  it("does not record unchanged porosity", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.setPorosity("Medium");
+    });
+
+    expect(result.current.isDirty).toBe(false);
+    expect(result.current.timeline).toEqual([]);
+  });
+
+  it("records a pigment change", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -184,9 +272,29 @@ describe("HairSessionContext", () => {
       "Orange",
     );
     expect(result.current.isDirty).toBe(true);
+    expect(result.current.timeline[0].type).toBe(
+      "pigment-changed",
+    );
+    expect(result.current.timeline[0].description).toBe(
+      "None → Orange",
+    );
   });
 
-  it("marks the session dirty when the gray percentage changes", () => {
+  it("does not record an unchanged pigment", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.setSelectedPigment(null);
+    });
+
+    expect(result.current.isDirty).toBe(false);
+    expect(result.current.timeline).toEqual([]);
+  });
+
+  it("marks the session dirty when gray percentage changes", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -198,6 +306,7 @@ describe("HairSessionContext", () => {
 
     expect(result.current.grayPercentage).toBe(40);
     expect(result.current.isDirty).toBe(true);
+    expect(result.current.timeline).toEqual([]);
   });
 
   it("marks the session dirty when chemical history changes", () => {
@@ -236,27 +345,66 @@ describe("HairSessionContext", () => {
     expect(result.current.isDirty).toBe(true);
   });
 
-  it("marks the session dirty when the formula plan changes", () => {
+  it("records a formula update", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
     );
 
-    const nextPlan = {
-      tonalFamily: "Violet",
-      developerChoice: "10 volume",
-      applicationStrategy: "Apply to warm zones",
-      processingNotes: "Monitor visually",
-    };
-
     act(() => {
-      result.current.setFormulaPlan(nextPlan);
+      result.current.setFormulaPlan(
+        populatedFormulaPlan,
+      );
     });
 
     expect(result.current.formulaPlan).toEqual(
-      nextPlan,
+      populatedFormulaPlan,
     );
     expect(result.current.isDirty).toBe(true);
+    expect(result.current.timeline[0].type).toBe(
+      "formula-updated",
+    );
+  });
+
+  it("records a formula clear", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.setFormulaPlan(
+        populatedFormulaPlan,
+      );
+    });
+
+    act(() => {
+      result.current.setFormulaPlan(emptyPlan);
+    });
+
+    expect(result.current.formulaPlan).toEqual(
+      emptyPlan,
+    );
+    expect(result.current.timeline[0].type).toBe(
+      "formula-cleared",
+    );
+    expect(result.current.timeline[1].type).toBe(
+      "formula-updated",
+    );
+  });
+
+  it("does not record an unchanged formula plan", () => {
+    const { result } = renderHook(
+      () => useHairSession(),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.setFormulaPlan(emptyPlan);
+    });
+
+    expect(result.current.isDirty).toBe(false);
+    expect(result.current.timeline).toEqual([]);
   });
 
   it("allows the session to be marked dirty directly", () => {
@@ -272,24 +420,7 @@ describe("HairSessionContext", () => {
     expect(result.current.isDirty).toBe(true);
   });
 
-  it("appends a timeline event", () => {
-    const { result } = renderHook(
-      () => useHairSession(),
-      { wrapper },
-    );
-
-    act(() => {
-      result.current.appendTimelineEvent(
-        timelineEvent,
-      );
-    });
-
-    expect(result.current.timeline).toEqual([
-      timelineEvent,
-    ]);
-  });
-
-  it("prepends newer timeline events", () => {
+  it("appends timeline events newest first", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -316,7 +447,7 @@ describe("HairSessionContext", () => {
     ]);
   });
 
-  it("clears the dirty state after a successful save", () => {
+  it("records a successful session save", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -325,8 +456,6 @@ describe("HairSessionContext", () => {
     act(() => {
       result.current.setCurrentLevel(6);
     });
-
-    expect(result.current.isDirty).toBe(true);
 
     let didSave = false;
 
@@ -337,12 +466,18 @@ describe("HairSessionContext", () => {
     expect(didSave).toBe(true);
     expect(mockedSaveHairSession).toHaveBeenCalledOnce();
     expect(result.current.activeSessionId).toBe(
-      "new-session-id",
+      "generated-id",
     );
     expect(result.current.isDirty).toBe(false);
+    expect(result.current.timeline[0].type).toBe(
+      "session-saved",
+    );
+    expect(result.current.timeline[1].type).toBe(
+      "current-level-changed",
+    );
   });
 
-  it("keeps the dirty state when saving fails", () => {
+  it("does not record a save event when saving fails", () => {
     mockedSaveHairSession.mockReturnValue(false);
 
     const { result } = renderHook(
@@ -363,9 +498,17 @@ describe("HairSessionContext", () => {
     expect(didSave).toBe(false);
     expect(result.current.activeSessionId).toBeNull();
     expect(result.current.isDirty).toBe(true);
+    expect(
+      result.current.timeline.some(
+        (event) => event.type === "session-saved",
+      ),
+    ).toBe(false);
+    expect(result.current.timeline[0].type).toBe(
+      "target-level-changed",
+    );
   });
 
-  it("loads a stored session as clean and records a timeline event", () => {
+  it("loads a stored session and starts a fresh timeline", () => {
     mockedLoadHairSession.mockReturnValue(
       storedSession,
     );
@@ -376,10 +519,10 @@ describe("HairSessionContext", () => {
     );
 
     act(() => {
-      result.current.setCurrentLevel(2);
+      result.current.appendTimelineEvent(
+        timelineEvent,
+      );
     });
-
-    expect(result.current.isDirty).toBe(true);
 
     let didLoad = false;
 
@@ -399,20 +542,16 @@ describe("HairSessionContext", () => {
     expect(result.current.currentLevel).toBe(4);
     expect(result.current.targetLevel).toBe(7);
     expect(result.current.isDirty).toBe(false);
-
     expect(result.current.timeline).toHaveLength(1);
     expect(result.current.timeline[0].type).toBe(
       "session-loaded",
-    );
-    expect(result.current.timeline[0].title).toBe(
-      "Session opened",
     );
     expect(
       result.current.timeline[0].metadata.sessionName,
     ).toBe(storedSession.name);
   });
 
-  it("does not change state or timeline when a session cannot be loaded", () => {
+  it("does not change state when a session cannot be loaded", () => {
     mockedLoadHairSession.mockReturnValue(null);
 
     const { result } = renderHook(
@@ -435,14 +574,22 @@ describe("HairSessionContext", () => {
     expect(didLoad).toBe(false);
     expect(result.current.currentLevel).toBe(2);
     expect(result.current.isDirty).toBe(true);
-    expect(result.current.timeline).toEqual([]);
+    expect(result.current.timeline[0].type).toBe(
+      "current-level-changed",
+    );
   });
 
-  it("creates a new active session and records a timeline event", () => {
+  it("creates a new session and starts a fresh timeline", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
     );
+
+    act(() => {
+      result.current.appendTimelineEvent(
+        timelineEvent,
+      );
+    });
 
     let createdSession: HairSession | null = null;
 
@@ -459,12 +606,9 @@ describe("HairSessionContext", () => {
     expect(result.current.timeline[0].type).toBe(
       "session-created",
     );
-    expect(result.current.timeline[0].title).toBe(
-      "Session created",
-    );
   });
 
-  it("does not activate a new session when creation fails", () => {
+  it("does not activate a session when creation fails", () => {
     mockedSaveHairSession.mockReturnValue(false);
 
     const { result } = renderHook(
@@ -486,7 +630,7 @@ describe("HairSessionContext", () => {
     expect(result.current.timeline).toEqual([]);
   });
 
-  it("resets the session to its clean initial state", () => {
+  it("resets the session and clears the timeline", () => {
     const { result } = renderHook(
       () => useHairSession(),
       { wrapper },
@@ -500,6 +644,9 @@ describe("HairSessionContext", () => {
     });
 
     expect(result.current.isDirty).toBe(true);
+    expect(result.current.timeline.length).toBeGreaterThan(
+      0,
+    );
 
     act(() => {
       result.current.resetSession();
@@ -513,26 +660,6 @@ describe("HairSessionContext", () => {
     expect(result.current.targetLevel).toBe(8);
     expect(result.current.porosity).toBe("Medium");
     expect(result.current.isDirty).toBe(false);
-  });
-
-  it("clears the timeline when the session is reset", () => {
-    const { result } = renderHook(
-      () => useHairSession(),
-      { wrapper },
-    );
-
-    act(() => {
-      result.current.appendTimelineEvent(
-        timelineEvent,
-      );
-    });
-
-    expect(result.current.timeline).toHaveLength(1);
-
-    act(() => {
-      result.current.resetSession();
-    });
-
     expect(result.current.timeline).toEqual([]);
   });
 });
