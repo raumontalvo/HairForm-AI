@@ -1,10 +1,13 @@
-import AppShell from "@/components/layout/AppShell";
 import ColorWheel from "@/components/color-wheel/ColorWheel";
+import AppShell from "@/components/layout/AppShell";
+import ActiveSessionHeader from "@/components/sessions/ActiveSessionHeader";
 
 export default function ColorWheelPage() {
   return (
     <AppShell title="Interactive Color Wheel">
-      <section className="max-w-3xl">
+      <ActiveSessionHeader />
+
+      <section className="mt-8 max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-300">
           Hair science
         </p>
