@@ -1,8 +1,11 @@
+"use client";
+
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Spinner from "@/components/ui/Spinner";
 import Textarea from "@/components/ui/Textarea";
+import { useToast } from "@/context/ToastContext";
 import type { Porosity } from "@/lib/color-engine/analyze";
 import type { HairLevel } from "@/lib/color-engine/levels";
 
@@ -54,10 +57,31 @@ export default function ConsultationForm({
   onPorosityChange,
   onAnalyze,
 }: ConsultationFormProps) {
+  const toast = useToast();
+
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    toast.info("Analyzing the consultation scenario.");
+
+    try {
+      await onAnalyze();
+      toast.success("Consultation analysis complete.");
+    } catch {
+      toast.error(
+        "The consultation analysis could not be completed.",
+      );
+    }
+  }
+
   return (
     <section className="rounded-3xl border border-white/10 bg-[#111111] p-6 sm:p-8">
       <div>
-        <p className="text-sm text-white/40">Consultation input</p>
+        <p className="text-sm text-white/40">
+          Consultation input
+        </p>
 
         <h2 className="mt-1 text-2xl font-semibold">
           Describe the starting canvas
@@ -66,10 +90,7 @@ export default function ConsultationForm({
 
       <form
         className="mt-8 space-y-6"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          await onAnalyze();
-        }}
+        onSubmit={handleSubmit}
       >
         <Select
           id="natural-level"
@@ -88,7 +109,9 @@ export default function ConsultationForm({
           value={`Level ${currentLevel}`}
           disabled={isAnalyzing}
           onChange={(event) =>
-            onCurrentLevelChange(parseHairLevel(event.target.value))
+            onCurrentLevelChange(
+              parseHairLevel(event.target.value),
+            )
           }
         >
           {startingLevels.map((level) => (
@@ -103,7 +126,9 @@ export default function ConsultationForm({
             value={`Level ${targetLevel}`}
             disabled={isAnalyzing}
             onChange={(event) =>
-              onTargetLevelChange(parseHairLevel(event.target.value))
+              onTargetLevelChange(
+                parseHairLevel(event.target.value),
+              )
             }
           >
             {startingLevels.map((level) => (
@@ -139,7 +164,9 @@ export default function ConsultationForm({
           value={porosity}
           disabled={isAnalyzing}
           onChange={(event) =>
-            onPorosityChange(event.target.value as Porosity)
+            onPorosityChange(
+              event.target.value as Porosity,
+            )
           }
         >
           <option>Low</option>
@@ -156,10 +183,17 @@ export default function ConsultationForm({
           placeholder="Example: Permanent color on roots, previous highlights through mids and ends..."
         />
 
-        <Button type="submit" fullWidth disabled={isAnalyzing}>
+        <Button
+          type="submit"
+          fullWidth
+          disabled={isAnalyzing}
+        >
           {isAnalyzing ? (
             <span className="inline-flex items-center justify-center gap-2">
-              <Spinner size="small" label="Analyzing consultation" />
+              <Spinner
+                size="small"
+                label="Analyzing consultation"
+              />
               Analyzing...
             </span>
           ) : (
