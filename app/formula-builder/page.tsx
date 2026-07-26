@@ -5,6 +5,7 @@ import FormulaPlanningForm from "@/components/formula-builder/FormulaPlanningFor
 import FormulaSessionSummary from "@/components/formula-builder/FormulaSessionSummary";
 import AppShell from "@/components/layout/AppShell";
 import ActiveSessionHeader from "@/components/sessions/ActiveSessionHeader";
+import SessionTimeline from "@/components/sessions/SessionTimeline";
 import { useHairSession } from "@/context/HairSessionContext";
 import { buildFormulaGuidance } from "@/lib/hair-science/formula-guidance";
 
@@ -67,6 +68,10 @@ export default function FormulaBuilderPage() {
             <FormulaGuidance guidance={guidance} />
           </div>
         </section>
+
+        <div className="mt-6">
+          <SessionTimeline />
+        </div>
       </main>
     </AppShell>
   );
